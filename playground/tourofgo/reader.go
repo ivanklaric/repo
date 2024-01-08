@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io"
+	"os"
+	"strings"
 )
 
 type InfiniteAs struct{}
@@ -15,16 +16,25 @@ func (i InfiniteAs) Read(b []byte) (int, error) {
 	return bytesGenerated, nil
 }
 
-func main() {
-	r := InfiniteAs{}
+type rot13Reader struct {
+	r io.Reader
+}
 
-	b := make([]byte, 8)
-	for {
-		n, err := r.Read(b)
-		fmt.Printf("n = %v err = %v b = %v\n", n, err, b)
-		fmt.Printf("b[:n] = %q\n", b[:n])
-		if err == io.EOF {
-			break
+func (r13r rot13Reader) Read(b []byte) (int, error) {
+	inputLookup := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	outputLookup := "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm"
+	n, e := r13r.r.Read(b)
+	for i, _ := range b {
+		index := strings.IndexByte(inputLookup, b[i])
+		if index >= 0 {
+			b[i] = outputLookup[strings.IndexByte(inputLookup, b[i])]
 		}
 	}
+	return n, e
+}
+
+func main() {
+	s := strings.NewReader("Lbh penpxrq gur pbqr!")
+	r := rot13Reader{s}
+	io.Copy(os.Stdout, &r)
 }
