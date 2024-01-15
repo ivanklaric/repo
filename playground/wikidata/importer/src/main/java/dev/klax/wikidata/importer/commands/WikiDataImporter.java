@@ -15,7 +15,7 @@ import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
 public class WikiDataImporter {
 
 
-    @ShellMethod(key = "import")
+    @ShellMethod(key = "import", value="processes the wikidata dump and imports it to the database")
     public String importWikidata(String filename) {
         var dumpProcessingController = new DumpProcessingController("wikidatawiki");
         var dumpFile = new MwLocalDumpFile(filename, DumpContentType.JSON, "latest", "wikidatawiki");
@@ -31,7 +31,7 @@ public class WikiDataImporter {
             entityTimerProcessor.close();
         }
 
-        return "Processed " + Integer.toString(entityProcessor.getItemDocsCount()) +" items and "
-                + Integer.toString(entityProcessor.getPropertyDocsCount()) + " properties.";
+        return "Processed " + entityProcessor.getItemDocsCount() +" items and "
+                + entityProcessor.getPropertyDocsCount() + " properties.";
     }
 }

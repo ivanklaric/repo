@@ -19,13 +19,8 @@ public class CustomEntityProcessor implements EntityDocumentProcessor {
         propertyDocsCount++;
     }
 
-
     public int getItemDocsCount() {
         return itemDocsCount;
-    }
-
-    public void setItemDocsCount(int itemDocsCount) {
-        this.itemDocsCount = itemDocsCount;
     }
 
     public int getPropertyDocsCount() {
