@@ -22,7 +22,7 @@ public class WikiDataImporter {
         var entityProcessor = new CustomEntityProcessor();
         dumpProcessingController.registerEntityDocumentProcessor(entityProcessor, null, true);
 
-        var entityTimerProcessor = new EntityTimerProcessor(20);
+        var entityTimerProcessor = new EntityTimerProcessor(2000);
         dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
         try {
@@ -31,7 +31,6 @@ public class WikiDataImporter {
             entityTimerProcessor.close();
         }
 
-        return "Processed " + entityProcessor.getItemDocsCount() +" items and "
-                + entityProcessor.getPropertyDocsCount() + " properties.";
+        return "done.";
     }
 }
