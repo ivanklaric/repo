@@ -23,6 +23,8 @@ dependencies {
 	implementation 'org.wikidata.wdtk:wdtk-dumpfiles:0.14.6'
 	implementation 'org.springframework.shell:spring-shell-starter'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.shell:spring-shell-starter-test'
+	testImplementation 'org.awaitility:awaitility'
 }
 
 dependencyManagement {
