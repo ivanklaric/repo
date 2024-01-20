@@ -1,14 +1,11 @@
 package dev.klax.wikidata.importer.wdtkutils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wikidata.wdtk.datamodel.helpers.Datamodel;
 import org.wikidata.wdtk.datamodel.interfaces.*;
 
 public class SportEntityProcessor implements EntityDocumentProcessor {
-    private StringBuilder entityProcessingLog = new StringBuilder();
+    private final StringBuilder entityProcessingLog = new StringBuilder();
 
-    private static final Logger logger = LoggerFactory.getLogger(SportEntityProcessor.class);
     static final Value typeOfSportEntity = Datamodel.makeWikidataItemIdValue("Q31629");
     static final PropertyIdValue instanceOfStatementId = Datamodel.makeWikidataPropertyIdValue("P31");
 
@@ -19,7 +16,7 @@ public class SportEntityProcessor implements EntityDocumentProcessor {
                 var isSport = statementGroupHasValue(sg, typeOfSportEntity);
                 if (isSport) {
                     var sport = SportEntityFactory.buildSportFrom(itemDoc);
-                    entityProcessingLog.append("Found sport: ").append(sport.toString());
+                    entityProcessingLog.append("Found sport: ").append(sport);
                 }
             }
         }
