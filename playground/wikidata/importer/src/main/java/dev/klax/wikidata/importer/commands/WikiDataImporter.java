@@ -25,7 +25,7 @@ public class WikiDataImporter {
         var entityProcessor = new SportEntityProcessor();
         dumpProcessingController.registerEntityDocumentProcessor(entityProcessor, null, true);
 
-        var entityTimerProcessor = new EntityTimerProcessor(2000);
+        var entityTimerProcessor = new EntityTimerProcessor(100);
         dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
         try {
