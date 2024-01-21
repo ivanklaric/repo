@@ -30,4 +30,21 @@ public class ImporterTest {
             ShellAssertions.assertThat(screen).containsText("judo");
         });
     }
+
+    @Test
+    void testTenEntitiesImport() {
+        var session  = client.nonInterative(
+                        "import",
+                        "src/test/resources/ten_entities.json")
+                .run();
+
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+            var screen = session.screen();
+            ShellAssertions.assertThat(screen).containsText("Found sport");
+            ShellAssertions.assertThat(screen).containsText("Q11420");
+            ShellAssertions.assertThat(screen).containsText("Q1455");
+            ShellAssertions.assertThat(screen).containsText("Q5386");
+            ShellAssertions.assertThat(screen).containsText("Q7707");
+        });
+    }
 }
