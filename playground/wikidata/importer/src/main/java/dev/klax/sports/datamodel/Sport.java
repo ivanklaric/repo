@@ -1,16 +1,30 @@
 package dev.klax.sports.datamodel;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
 import java.util.UUID;
 import java.util.Map;
 
 /*
-  Class sport is meant to represent the sport entity.
+  Class sport represents the main sport entity.
  */
+@Entity
 public class Sport {
+    @Id
     private UUID uuid;
     private String name;
     private String description;
+
+    @ElementCollection
+    @Column(columnDefinition = "json")
     private Map<String, String> i18names;
+
+    @ElementCollection
+    @Column(columnDefinition = "json")
+
     private Map<String, String> ids;
 
     public String getName() {

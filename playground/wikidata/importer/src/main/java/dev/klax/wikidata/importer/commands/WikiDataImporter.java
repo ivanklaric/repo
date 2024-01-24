@@ -1,6 +1,7 @@
 package dev.klax.wikidata.importer.commands;
 
 import dev.klax.sports.datamodel.Sport;
+import dev.klax.sports.repository.SportRepository;
 import dev.klax.wikidata.importer.wdtkutils.SportEntityProcessor;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -14,9 +15,18 @@ import java.util.List;
 
 @ShellComponent
 public class WikiDataImporter {
+    private final SportRepository sportRepository;
+
+    public WikiDataImporter(SportRepository sportRepository) {
+        this.sportRepository = sportRepository;
+    }
 
     private void persistSportEntities(List<Sport> sportEntities) {
+        if (sportEntities == null) {
+            return;
+        }
         for (var sport : sportEntities) {
+            sportRepository.save(sport);
             System.out.println("Persisting " + sport);
         }
     }
