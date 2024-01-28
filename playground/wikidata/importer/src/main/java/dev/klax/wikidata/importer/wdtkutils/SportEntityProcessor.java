@@ -11,8 +11,6 @@ import java.util.List;
 
 public class SportEntityProcessor implements EntityDocumentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(SportEntityProcessor.class);
-    private final StringBuilder entityProcessingLog = new StringBuilder();
-
     public List<Sport> getProcessedSports() {
         return processedSports;
     }
@@ -29,7 +27,6 @@ public class SportEntityProcessor implements EntityDocumentProcessor {
                 var isSport = statementGroupHasValue(sg, typeOfSportEntity);
                 if (isSport) {
                     var sport = SportEntityFactory.buildSportFrom(itemDoc);
-                    entityProcessingLog.append("Found sport: ").append(sport).append("\n");
                     logger.info("Found sport: " + sport.getName() + " " +sport.getIds().get("wikidata"));
                     processedSports.add(sport);
                 }
@@ -45,9 +42,5 @@ public class SportEntityProcessor implements EntityDocumentProcessor {
             }
         }
         return false;
-    }
-
-    public String getOutputLog() {
-        return entityProcessingLog.toString();
     }
 }

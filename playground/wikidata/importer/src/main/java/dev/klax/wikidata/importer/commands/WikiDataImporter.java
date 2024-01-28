@@ -1,14 +1,11 @@
 package dev.klax.wikidata.importer.commands;
 
-import dev.klax.sports.datamodel.Sport;
 import dev.klax.sports.repository.SportRepository;
-import dev.klax.wikidata.importer.wdtkutils.SportEntityProcessor;
 import dev.klax.wikidata.importer.wdtkutils.SportsDataImporter;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
 import java.io.File;
-import java.util.List;
 
 
 @ShellComponent

@@ -2,6 +2,8 @@ package dev.klax.wikidata.importer.wdtkutils;
 
 import dev.klax.sports.datamodel.Sport;
 import dev.klax.sports.repository.SportRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wikidata.wdtk.dumpfiles.DumpContentType;
 import org.wikidata.wdtk.dumpfiles.DumpProcessingController;
 import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
@@ -11,14 +13,15 @@ import java.util.List;
 
 public class SportsDataImporter {
 
+    private static final Logger logger = LoggerFactory.getLogger(SportEntityProcessor.class);
+
     public int persistSportEntities(SportRepository sportsRepository, List<Sport> sportEntities) {
         if (sportEntities == null) {
             return -1;
         }
         for (var sport : sportEntities) {
             sportsRepository.save(sport);
-            System.out.println("Persisting " + sport);
-            // TODO: replace with logger
+            logger.info("Persisting " + sport);
         }
         return sportEntities.size();
     }
