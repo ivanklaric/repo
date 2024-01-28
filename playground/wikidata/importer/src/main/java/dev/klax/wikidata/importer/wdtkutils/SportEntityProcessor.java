@@ -17,13 +17,13 @@ public class SportEntityProcessor implements EntityDocumentProcessor {
         return processedSports;
     }
 
-    private List<Sport> processedSports;
+    private final List<Sport> processedSports = new ArrayList<>();
+
     static final Value typeOfSportEntity = Datamodel.makeWikidataItemIdValue("Q31629");
     static final PropertyIdValue instanceOfStatementId = Datamodel.makeWikidataPropertyIdValue("P31");
 
     @Override
     public void processItemDocument(ItemDocument itemDoc) {
-        processedSports = new ArrayList<>();
         for (StatementGroup sg : itemDoc.getStatementGroups()) {
             if (sg.getProperty().getId().equals(instanceOfStatementId.getId()) ) {
                 var isSport = statementGroupHasValue(sg, typeOfSportEntity);

@@ -3,13 +3,11 @@ package dev.klax.wikidata.importer.commands;
 import dev.klax.sports.datamodel.Sport;
 import dev.klax.sports.repository.SportRepository;
 import dev.klax.wikidata.importer.wdtkutils.SportEntityProcessor;
+import dev.klax.wikidata.importer.wdtkutils.SportsDataImporter;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
-import org.wikidata.wdtk.dumpfiles.DumpContentType;
-import org.wikidata.wdtk.dumpfiles.DumpProcessingController;
-import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
-import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
 
+import java.io.File;
 import java.util.List;
 
 
@@ -21,38 +19,25 @@ public class WikiDataImporter {
         this.sportRepository = sportRepository;
     }
 
-    private void persistSportEntities(List<Sport> sportEntities) {
-        if (sportEntities == null) {
-            return;
-        }
-        for (var sport : sportEntities) {
-            sportRepository.save(sport);
-            System.out.println("Persisting " + sport);
-        }
-    }
-
     @ShellMethod(key = "import", value="processes the wikidata dump and imports it to the database")
     public String importWikidata(String filename) {
         if (filename== null || filename.isEmpty()) {
-            return "Needs filename parameter";
+            return "Needs filename parameter.";
         }
-        //TODO: add file exists check
-
-        var dumpProcessingController = new DumpProcessingController("wikidatawiki");
-        var dumpFile = new MwLocalDumpFile(filename, DumpContentType.JSON, "latest", "wikidatawiki");
-        var entityProcessor = new SportEntityProcessor();
-        dumpProcessingController.registerEntityDocumentProcessor(entityProcessor, null, true);
-
-        var entityTimerProcessor = new EntityTimerProcessor(100);
-        dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
-
-        try {
-            dumpProcessingController.processDump(dumpFile);
-        } catch (EntityTimerProcessor.TimeoutException te) {
-            entityTimerProcessor.close();
+        File f = new File(filename);
+        if (!f.exists() || f.isDirectory()) {
+            return filename + " is not a valid filename.";
         }
-        persistSportEntities(entityProcessor.getProcessedSports());
 
-        return entityProcessor.getOutputLog();
+        var importer = new SportsDataImporter();
+        var listOfSports = importer.getSportsEntitiesFromWikidataDump(filename);
+        if (listOfSports == null || listOfSports.isEmpty()) {
+            return "No sports found in the dump!";
+        }
+        int persistedSports = importer.persistSportEntities(sportRepository, listOfSports);
+        if (persistedSports <= 0 || persistedSports != listOfSports.size()) {
+            return "Found " + listOfSports.size() +" sports but persisted " + persistedSports;
+        }
+        return "Found and persisted " + persistedSports + " sports";
     }
 }
