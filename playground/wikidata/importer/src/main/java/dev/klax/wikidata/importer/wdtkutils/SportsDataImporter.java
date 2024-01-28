@@ -3,6 +3,7 @@ package dev.klax.wikidata.importer.wdtkutils;
 import dev.klax.sports.datamodel.Sport;
 import dev.klax.sports.datamodel.SportsClub;
 import dev.klax.sports.repository.SportRepository;
+import dev.klax.sports.repository.SportsClubRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wikidata.wdtk.dumpfiles.DumpContentType;
@@ -27,12 +28,12 @@ public class SportsDataImporter {
         return sportEntities.size();
     }
 
-    public int persistSportsClubEntities(SportRepository sportsRepository, List<SportsClub> sportsClubs) {
+    public int persistSportsClubEntities(SportsClubRepository sportsClubRepo, List<SportsClub> sportsClubs) {
         if (sportsClubs == null) {
             return -1;
         }
         for (var club : sportsClubs) {
-            sportsRepository.save(club);
+            sportsClubRepo.save(club);
             logger.info("Persisting " + club);
         }
         return sportsClubs.size();
