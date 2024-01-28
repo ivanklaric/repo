@@ -1,6 +1,7 @@
 package dev.klax.wikidata.importer.wdtkutils;
 
 import dev.klax.sports.datamodel.Sport;
+import dev.klax.sports.datamodel.SportsClub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wikidata.wdtk.datamodel.helpers.Datamodel;
@@ -11,14 +12,22 @@ import java.util.List;
 
 public class SportEntityProcessor implements EntityDocumentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(SportEntityProcessor.class);
+
+    private final List<Sport> processedSports = new ArrayList<>();
+    private final List<SportsClub> processedSportsClubs = new ArrayList<>();
+
+
     public List<Sport> getProcessedSports() {
         return processedSports;
     }
-
-    private final List<Sport> processedSports = new ArrayList<>();
+    public List<SportsClub> getProcessedSportsClubs() {
+        return processedSportsClubs;
+    }
 
     static final Value typeOfSportEntity = Datamodel.makeWikidataItemIdValue("Q31629");
+    static final Value soccerClubEntity = Datamodel.makeWikidataItemIdValue("Q476028");
     static final PropertyIdValue instanceOfStatementId = Datamodel.makeWikidataPropertyIdValue("P31");
+
 
     @Override
     public void processItemDocument(ItemDocument itemDoc) {
@@ -29,6 +38,12 @@ public class SportEntityProcessor implements EntityDocumentProcessor {
                     var sport = SportEntityFactory.buildSportFrom(itemDoc);
                     logger.info("Found sport: " + sport.getName() + " " +sport.getIds().get("wikidata"));
                     processedSports.add(sport);
+                }
+
+                var isSportsClub = statementGroupHasValue(sg, soccerClubEntity);
+                if (isSportsClub) {
+                    var sportsClub = SportEntityFactory.buildSportsClubFrom(itemDoc);
+                    logger.info("Found sports club: " + sportsClub.getName());
                 }
             }
         }

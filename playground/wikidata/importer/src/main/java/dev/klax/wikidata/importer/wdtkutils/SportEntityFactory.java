@@ -1,6 +1,7 @@
 package dev.klax.wikidata.importer.wdtkutils;
 
 import dev.klax.sports.datamodel.Sport;
+import dev.klax.sports.datamodel.SportsClub;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 
 import java.util.HashMap;
@@ -36,6 +37,23 @@ public class SportEntityFactory {
         var idsMap = new HashMap<String, String>();
         idsMap.put(wikidataEntityProviderName, itemDoc.getEntityId().getId());
         ret.setIds(idsMap);
+
+        return ret;
+    }
+
+    public static SportsClub buildSportsClubFrom(ItemDocument itemDoc) {
+        var ret = new SportsClub();
+        ret.setUuid(java.util.UUID.randomUUID());
+
+        var labelsMap = itemDoc.getLabels();
+        if (labelsMap != null && labelsMap.containsKey(englishLanguageCode)) {
+            ret.setName(labelsMap.get(englishLanguageCode).getText());
+        }
+
+        var descriptionsMap = itemDoc.getDescriptions();
+        if (descriptionsMap != null && descriptionsMap.containsKey(englishLanguageCode)) {
+            ret.setDescription(descriptionsMap.get(englishLanguageCode).getText());
+        }
 
         return ret;
     }

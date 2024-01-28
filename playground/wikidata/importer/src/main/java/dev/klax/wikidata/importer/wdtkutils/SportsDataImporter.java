@@ -1,6 +1,7 @@
 package dev.klax.wikidata.importer.wdtkutils;
 
 import dev.klax.sports.datamodel.Sport;
+import dev.klax.sports.datamodel.SportsClub;
 import dev.klax.sports.repository.SportRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,17 @@ public class SportsDataImporter {
         return sportEntities.size();
     }
 
+    public int persistSportsClubEntities(SportRepository sportsRepository, List<SportsClub> sportsClubs) {
+        if (sportsClubs == null) {
+            return -1;
+        }
+        for (var club : sportsClubs) {
+            sportsRepository.save(club);
+            logger.info("Persisting " + club);
+        }
+        return sportsClubs.size();
+    }
+
 
     public List<Sport> getSportsEntitiesFromWikidataDump(String filename) {
         var dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -33,6 +45,7 @@ public class SportsDataImporter {
         var entityProcessor = new SportEntityProcessor();
         dumpProcessingController.registerEntityDocumentProcessor(entityProcessor, null, true);
 
+        // TODO: fix this, should be configurable externally
         var entityTimerProcessor = new EntityTimerProcessor(100);
         dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
@@ -40,7 +53,6 @@ public class SportsDataImporter {
             dumpProcessingController.processDump(dumpFile);
         } catch (EntityTimerProcessor.TimeoutException te) {
             entityTimerProcessor.close();
-            return null;
         }
         return entityProcessor.getProcessedSports();
     }
