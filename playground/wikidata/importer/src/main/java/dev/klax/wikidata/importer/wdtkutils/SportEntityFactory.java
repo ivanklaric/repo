@@ -1,6 +1,6 @@
 package dev.klax.wikidata.importer.wdtkutils;
 
-import dev.klax.sports.datamodel.Protos;
+import dev.klax.sports.datamodel.Competitor;
 import dev.klax.sports.datamodel.Sport;
 import dev.klax.sports.datamodel.SportsClub;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
@@ -60,8 +60,8 @@ public class SportEntityFactory {
         return ret;
     }
 
-    public static Protos.Competitor buildCompetitor() {
-        return Protos.Competitor.newBuilder()
+    public static Competitor buildCompetitor() {
+        return Competitor.newBuilder()
                 .setUuid(UUID.randomUUID().toString())
                 .setName("Foo")
                 .setDescription("Bar")

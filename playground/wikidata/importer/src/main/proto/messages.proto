@@ -1,10 +1,7 @@
 syntax = "proto3";
 
-package dev.klax.sports.datamodel;
-
 option java_package = "dev.klax.sports.datamodel";
 option java_multiple_files = true;
-option java_outer_classname = "Protos";
 
 message Competitor {
   string uuid = 1;
