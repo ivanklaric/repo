@@ -12,8 +12,8 @@ import java.util.UUID;
     SportEntityFactory class is meant to produce Sport entities from the relevant ItemDocument WikiData entities.
  */
 public class SportEntityFactory {
-    public static String englishLanguageCode = "en";
-    public static String wikidataEntityProviderName = "wikidata";
+    public static final String englishLanguageCode = "en";
+    public static final String wikidataEntityProviderName = "wikidata";
 
     public static Sport buildSportFrom(ItemDocument itemDoc) {
         var ret = new Sport();
