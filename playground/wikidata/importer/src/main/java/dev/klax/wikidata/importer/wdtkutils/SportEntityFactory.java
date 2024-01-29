@@ -1,10 +1,12 @@
 package dev.klax.wikidata.importer.wdtkutils;
 
+import dev.klax.sports.datamodel.Protos;
 import dev.klax.sports.datamodel.Sport;
 import dev.klax.sports.datamodel.SportsClub;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 /*
     SportEntityFactory class is meant to produce Sport entities from the relevant ItemDocument WikiData entities.
@@ -56,5 +58,13 @@ public class SportEntityFactory {
         }
 
         return ret;
+    }
+
+    public static Protos.Competitor buildCompetitor() {
+        return Protos.Competitor.newBuilder()
+                .setUuid(UUID.randomUUID().toString())
+                .setName("Foo")
+                .setDescription("Bar")
+                .build();
     }
 }
