@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.Socket;
 
 public class ServerThread extends Thread {
-    private Socket socket;
+    private final Socket socket;
 
     public ServerThread(Socket socket) {
         this.socket = socket;
