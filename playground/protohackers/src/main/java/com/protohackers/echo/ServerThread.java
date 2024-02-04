@@ -10,10 +10,10 @@ public class ServerThread extends Thread {
         this.socket = socket;
     }
 
-    private InputStream openInputStream() {
-        InputStream input;
+    private DataInputStream openInputStream() {
+        DataInputStream input;
         try {
-            input = socket.getInputStream();
+            input = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
             System.out.println("Error opening input stream: " + e);
             return null;
@@ -21,10 +21,10 @@ public class ServerThread extends Thread {
         return input;
     }
 
-    private OutputStream openOutputStream() {
-        OutputStream output;
+    private DataOutputStream openOutputStream() {
+        DataOutputStream output;
         try {
-            output = socket.getOutputStream();
+            output = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             System.out.println("Error opening the output stream: " + e);
             return null;
@@ -40,19 +40,17 @@ public class ServerThread extends Thread {
             return;
         }
 
-        InputStreamReader reader = new InputStreamReader(input);
-        OutputStreamWriter writer = new OutputStreamWriter(output);
         int ch;
         try {
-            while ((ch = reader.read()) >= 0) {
-                writer.write(ch);
+            while ((ch = input.read()) >= 0) {
+                output.write(ch);
             }
         } catch (IOException e) {
             System.out.println("Error doing I/O: " + e);
         }
         try {
-            writer.close();
-            reader.close();
+            input.close();
+            output.close();
             socket.close();
         } catch (IOException e) {
             System.out.println("Error closing connection: " + e);
