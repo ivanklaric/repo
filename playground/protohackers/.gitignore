@@ -40,3 +40,11 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Terraform artefacts ###
+**.terraform*
+terraform.tfstate*
+**.tf.plan
+.terraform.log
+**.terraform.lock.hcl
+
