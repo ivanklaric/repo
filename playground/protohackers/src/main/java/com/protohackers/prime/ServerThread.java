@@ -11,13 +11,13 @@ public class ServerThread extends Thread {
     }
 
     public void run() {
-        BufferedReader reader = null;
+        BufferedReader reader;
         try {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             return;
         }
-        BufferedWriter writer = null;
+        BufferedWriter writer;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
@@ -37,7 +37,7 @@ public class ServerThread extends Thread {
             writer.close();
             socket.close();
         } catch (IOException e) {
-            return;
+            // probably not worth doing anything in this case
         }
     }
 }
