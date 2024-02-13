@@ -20,7 +20,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        int port = 9007; // TODO: this should come from command line args
+        int port = 9003; // TODO: this should come from command line args
 
         String[] listOfAcceptableArgs = {"echo", "prime"};
         Set<String> acceptableArgs = new HashSet<>(Arrays.asList(listOfAcceptableArgs));

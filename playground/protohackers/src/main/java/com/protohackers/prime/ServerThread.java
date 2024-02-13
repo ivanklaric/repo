@@ -30,6 +30,7 @@ public class ServerThread extends Thread {
                 var numberInRequest = RequestResponseObjectManipulation.getNumberFromRequest(jsonString);
                 if (!isValidRequest || numberInRequest == null) {
                     writer.write(RequestResponseObjectManipulation.createMalformedResponse());
+                    break; // disconnect the client
                 } else {
                     writer.write(RequestResponseObjectManipulation.createResponse(PrimeNumberDetector.isPrimeNumber(numberInRequest)));
                 }
