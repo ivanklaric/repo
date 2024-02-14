@@ -26,6 +26,7 @@ public class ServerThread extends Thread {
         try {
             String jsonString;
             while ((jsonString = reader.readLine()) != null) {
+                System.out.println("Processing " + jsonString);
                 boolean isValidRequest = RequestResponseObjectManipulation.isValidRequest(jsonString);
                 var numberInRequest = RequestResponseObjectManipulation.getNumberFromRequest(jsonString);
                 if (!isValidRequest || numberInRequest == null) {
