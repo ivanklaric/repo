@@ -1,0 +1,21 @@
+{"method": "isPrime", "number": 1}
+{"method": "isPrime", "number": 2}
+{"method": "isPrime", "number": 3}
+{"method": "isPrime", "number": 4}
+{"method": "isPrime", "number": 5}
+{"method": "isPrime", "number": 6}
+{"method": "isPrime", "number": 7}
+malformed
+{"method": "isPrime", "number": 8}
+{"method": "isPrime", "number": 9}
+{"method": "isPrime", "number": 10}
+{"method": "isPrime", "number": 11}
+{"method": "isPrime", "number": 12}
+malformed
+{"method": "isPrime", "number": 13}
+{"method": "isPrime", "number": 14}
+{"method": "isPrime", "number": 15}
+{"method": "isPrime", "number": 16}
+{"method": "isPrime", "number": 17}
+{"method": "isPrime", "number": 18}
+{"method": "isPrime", "number": 19}
