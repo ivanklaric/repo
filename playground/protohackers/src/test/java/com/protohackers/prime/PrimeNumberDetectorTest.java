@@ -20,6 +20,7 @@ class PrimeNumberDetectorTest {
                 assertFalse(PrimeNumberDetector.isPrimeNumber(i), Integer.toString(i));
             }
         }
+        assertFalse(PrimeNumberDetector.isPrimeNumber(-2), "-2");
     }
 
 }
