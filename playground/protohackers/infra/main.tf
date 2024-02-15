@@ -93,8 +93,8 @@ resource "aws_ecs_task_definition" "echo_service_task" {
       essential = true
       portMappings = [
         {
-          containerPort = 9003
-          hostPort      = 9003
+          containerPort = var.container_port
+          hostPort      = var.container_port
           protocol      = "tcp"
         }
       ]
@@ -110,15 +110,7 @@ resource "aws_ecs_task_definition" "echo_service_task" {
   ])
 }
 
-variable "vpc_cidr_block" {
-  default = "10.1.0.0/16"
-  type = string
-}
-
-resource "aws_vpc" "default" {
-  cidr_block           = var.vpc_cidr_block
-  enable_dns_support   = true
-  enable_dns_hostnames = true
+resource "aws_default_vpc" "default" {
 }
 
 
@@ -127,35 +119,13 @@ variable "container_port" {
   type = number
 }
 
-resource "aws_security_group" "alb" {
-  name        = "Protohackers_ALB_SecurityGroup"
-  description = "Security group for ALB"
-  vpc_id      = aws_vpc.default.id
-
-  ingress {
-    description = "Allow all ingress traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    description = "Allow all egress traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_security_group" "ecs_container_instance" {
   name        = "Protohackers_ECS_Task_SecurityGroup"
   description = "Security group for ECS task running on Fargate"
-  vpc_id      = aws_vpc.default.id
+  vpc_id      = aws_default_vpc.default.id
 
   ingress {
-    description     = "Allow ingress traffic from ALB on HTTP only"
+    description     = "Allow ingress traffic"
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
@@ -178,11 +148,14 @@ variable "az_count" {
 
 data "aws_availability_zones" "available" {}
 
-resource "aws_subnet" "private" {
-  count             = var.az_count
-  cidr_block        = cidrsubnet(var.vpc_cidr_block, 8, count.index)
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  vpc_id            = aws_vpc.default.id
+resource "aws_default_subnet" "default1" {
+  availability_zone = "eu-north-1a"
+}
+resource "aws_default_subnet" "default2" {
+  availability_zone = "eu-north-1b"
+}
+resource "aws_default_subnet" "default3" {
+  availability_zone = "eu-north-1c"
 }
 
 resource "aws_ecs_service" "service" {
@@ -196,7 +169,7 @@ resource "aws_ecs_service" "service" {
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_container_instance.id]
-    subnets          = aws_subnet.private.*.id
+    subnets          = [aws_default_subnet.default1.id, aws_default_subnet.default2.id, aws_default_subnet.default3.id]
     assign_public_ip = true
   }
 }
