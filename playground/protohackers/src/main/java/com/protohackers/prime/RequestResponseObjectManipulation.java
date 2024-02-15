@@ -16,6 +16,9 @@ public class RequestResponseObjectManipulation {
             if (!jsonObj.has("number")) {
                 return false;
             }
+            if (jsonObj.get("number") instanceof String) {
+                return false;
+            }
             jsonObj.getNumber("number");
         } catch (JSONException jsonExc) {
             // invalid JSON or getNumber didn't return a number
