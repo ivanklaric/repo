@@ -36,6 +36,7 @@ public class ServerThread extends Thread {
                     String response = RequestResponseObjectManipulation.createResponse(PrimeNumberDetector.isPrimeNumber(numberInRequest));
                     System.out.println("Response:[" + response +"]");
                     writer.write(response);
+                    writer.flush();
                 }
             }
             writer.close();
