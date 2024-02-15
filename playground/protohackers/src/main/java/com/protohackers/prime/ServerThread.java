@@ -33,7 +33,9 @@ public class ServerThread extends Thread {
                     writer.write(RequestResponseObjectManipulation.createMalformedResponse());
                     break; // disconnect the client
                 } else {
-                    writer.write(RequestResponseObjectManipulation.createResponse(PrimeNumberDetector.isPrimeNumber(numberInRequest)));
+                    String response = RequestResponseObjectManipulation.createResponse(PrimeNumberDetector.isPrimeNumber(numberInRequest));
+                    System.out.println("Response:[" + response +"]");
+                    writer.write(response);
                 }
             }
             writer.close();
