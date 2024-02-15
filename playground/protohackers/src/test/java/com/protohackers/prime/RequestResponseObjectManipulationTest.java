@@ -13,7 +13,7 @@ class RequestResponseObjectManipulationTest {
         var assertTrueList = new ArrayList<String>();
         var assertFalseList = new ArrayList<String>();
 
-
+        assertFalseList.add("{\"method\":\"isPrime\",\"number\":\"9535433\"}\n");
         assertFalseList.add("{'foo':'bar'}\n");
         assertFalseList.add("{'method': 'invalidMethod'}\n");
         assertFalseList.add("{'method': 'isPrime'}\n");
