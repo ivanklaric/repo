@@ -16,6 +16,9 @@ public class Main {
         if (serviceName.equals("prime")) {
             return new com.protohackers.prime.ServerThread(socket);
         }
+        if (serviceName.equals("means")) {
+            return new com.protohackers.means.ServerThread(socket);
+        }
         return null;
     }
 
