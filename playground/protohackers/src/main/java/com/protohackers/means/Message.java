@@ -10,15 +10,27 @@ public class Message {
     public enum MessageType { INSERT, QUERY}
 
     public MessageType getType() {
-        return MessageType.INSERT;
+        if ((char)rawMessage[0] == 'I')
+            return MessageType.INSERT;
+        return MessageType.QUERY;
     }
 
     public int firstInt() {
-        return 1;
+        int ret = 0;
+        ret = ret | rawMessage[4];
+        ret = ret | (int) (rawMessage[3] << 8);
+        ret = ret | (int) (rawMessage[2] << 16);
+        ret = ret | (int) (rawMessage[1] << 24);
+        return ret;
     }
 
     public int secondInt() {
-        return 2;
+        int ret = 0;
+        ret = ret | rawMessage[8];
+        ret = ret | (int) (rawMessage[7] << 8);
+        ret = ret | (int) (rawMessage[6] << 16);
+        ret = ret | (int) (rawMessage[5] << 24);
+        return ret;
     }
 
     public int getTimestamp() {
