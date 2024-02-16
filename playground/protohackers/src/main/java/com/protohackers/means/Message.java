@@ -1,7 +1,7 @@
 package com.protohackers.means;
 
 public class Message {
-    private byte[] rawMessage;
+    private final byte[] rawMessage;
 
     public Message(byte[] rawMessage) {
         this.rawMessage = rawMessage;
