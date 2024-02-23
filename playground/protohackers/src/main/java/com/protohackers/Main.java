@@ -32,6 +32,7 @@ public class Main {
             System.out.println("Args:");
             System.out.println("echo  - for EchoService");
             System.out.println("prime - for PrimeTime");
+            System.out.println("means - for MeansToAnEnd");
             return;
         }
         try (ServerSocket serverSocket = new ServerSocket(port)) {
