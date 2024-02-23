@@ -26,7 +26,7 @@ public class Main {
         int port = 9003; // TODO: this should come from command line args
 
         System.out.println("Listening on " + port);
-        String[] listOfAcceptableArgs = {"echo", "prime"};
+        String[] listOfAcceptableArgs = {"echo", "prime", "means"};
         Set<String> acceptableArgs = new HashSet<>(Arrays.asList(listOfAcceptableArgs));
         if (args.length < 1 || !acceptableArgs.contains(args[0])) {
             System.out.println("Args:");

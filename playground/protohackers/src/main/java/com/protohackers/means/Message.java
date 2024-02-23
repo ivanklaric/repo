@@ -1,5 +1,7 @@
 package com.protohackers.means;
 
+import javax.imageio.plugins.tiff.GeoTIFFTagSet;
+
 public class Message {
     private final byte[] rawMessage;
 
@@ -47,5 +49,12 @@ public class Message {
 
     public int getMaxTime() {
         return secondInt();
+    }
+
+    public String toString() {
+        return String.format("%s, %d, %d",
+                getType() == MessageType.INSERT ? "I" : "Q",
+                firstInt(),
+                secondInt());
     }
 }
