@@ -20,9 +20,21 @@ class PriceStorageTest {
     @Timeout(10)
     public void test100kMessages() {
         var priceStorage = new PriceStorage();
+        int minTime = Integer.MAX_VALUE;
+        int maxTime = 0;
+        int totalPrice = 0;
         for (int i = 0; i < 100000; i++) {
-            priceStorage.storePrice(new Message(new byte[] {0x49,  0x00, 0x00, (byte) (Math.random() * 255), (byte) (Math.random() * 255), 0x00, 0x65}));
+            var msg = new Message(new byte[] {0x49,
+                    0x00, 0x00, (byte) (Math.random() * 255), (byte) (Math.random() * 255),
+                    0x00, 0x00, 0x00, (byte) (Math.random() * 255)});
+            if (msg.getTimestamp() > maxTime)
+                maxTime = msg.getTimestamp();
+            if (msg.getTimestamp() < minTime)
+                minTime = msg.getTimestamp();
+            totalPrice += msg.getPrice();
+            priceStorage.storePrice(msg);
         }
+        assertEquals(totalPrice / 100000, priceStorage.getMeanPrice(minTime, maxTime));
     }
 
     @Test
