@@ -1,11 +1,12 @@
 package com.protohackers.means;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class PriceStorage {
 
-    private final List<Message> messages = new ArrayList<>();
+    private final List<Message> messages = new LinkedList<>();
 
 
     public int getMeanPrice(int minTime, int maxTime) {
