@@ -1,8 +1,6 @@
 package com.protohackers.means;
 
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class PriceStorage {
