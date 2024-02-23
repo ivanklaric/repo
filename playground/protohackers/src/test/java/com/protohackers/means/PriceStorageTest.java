@@ -20,9 +20,7 @@ class PriceStorageTest {
     @Timeout(10)
     public void test100kMessages() {
         var priceStorage = new PriceStorage();
-        for (int i = 0; i < 200000; i++) {
-            if (i % 100 == 0)
-                System.out.print(".");
+        for (int i = 0; i < 100000; i++) {
             priceStorage.storePrice(new Message(new byte[] {0x49,  0x00, 0x00, (byte) (Math.random() * 255), (byte) (Math.random() * 255), 0x00, 0x65}));
         }
     }
