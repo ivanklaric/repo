@@ -17,19 +17,19 @@ public class Message {
 
     public int firstInt() {
         int ret = 0;
-        ret = ret | rawMessage[4];
-        ret = ret | (int) (rawMessage[3] << 8);
-        ret = ret | (int) (rawMessage[2] << 16);
-        ret = ret | (int) (rawMessage[1] << 24);
+        ret = ret | Byte.toUnsignedInt(rawMessage[4]);
+        ret = ret | Byte.toUnsignedInt(rawMessage[3]) << 8;
+        ret = ret | Byte.toUnsignedInt(rawMessage[2]) << 16;
+        ret = ret | Byte.toUnsignedInt(rawMessage[1]) << 24;
         return ret;
     }
 
     public int secondInt() {
         int ret = 0;
-        ret = ret | rawMessage[8];
-        ret = ret | (int) (rawMessage[7] << 8);
-        ret = ret | (int) (rawMessage[6] << 16);
-        ret = ret | (int) (rawMessage[5] << 24);
+        ret = ret | Byte.toUnsignedInt(rawMessage[8]);
+        ret = ret | Byte.toUnsignedInt(rawMessage[7]) << 8;
+        ret = ret | Byte.toUnsignedInt(rawMessage[6]) << 16;
+        ret = ret | Byte.toUnsignedInt(rawMessage[5]) << 24;
         return ret;
     }
 
