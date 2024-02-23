@@ -1,7 +1,5 @@
 package com.protohackers.means;
 
-import javax.imageio.plugins.tiff.GeoTIFFTagSet;
-
 public class Message {
     private final byte[] rawMessage;
 
