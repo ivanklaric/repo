@@ -9,6 +9,9 @@ public class PriceStorage {
 
 
     public int getMeanPrice(int minTime, int maxTime) {
+        if (minTime > maxTime)
+            return 0;
+
         int totalPrice = 0;
         int numWithinRange = 0;
         for (var msg : messages) {
@@ -17,6 +20,9 @@ public class PriceStorage {
                 totalPrice += msg.getPrice();
             }
         }
+        if (numWithinRange == 0)
+            return 0;
+
         return totalPrice / numWithinRange;
     }
 

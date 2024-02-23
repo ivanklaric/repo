@@ -15,4 +15,13 @@ class PriceStorageTest {
         assertEquals(101, priceStorage.getMeanPrice(12288, 16384));
     }
 
+    @Test
+    public void testEmptyStorage() {
+        var priceStorage = new PriceStorage();
+        // we should return zero if no prices are found in the rage
+        assertEquals(0, priceStorage.getMeanPrice(100, 102));
+        // we should return zero if min > max
+        assertEquals(0, priceStorage.getMeanPrice(200, 100));
+    }
+
 }
