@@ -1,6 +1,9 @@
 package com.protohackers.means;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,6 +16,17 @@ class PriceStorageTest {
         priceStorage.storePrice(new Message(new byte[] {0x49, 0x00, 0x00, 0x30, 0x3b, 0x00, 0x00, 0x00, 0x64}));
         priceStorage.storePrice(new Message(new byte[] {0x49, 0x00, 0x00, (byte) 0xa0, 0x00, 0x00, 0x00, 0x00, 0x05}));
         assertEquals(101, priceStorage.getMeanPrice(12288, 16384));
+    }
+
+    @Test
+    @Timeout(10)
+    public void test100kMessages() {
+        var priceStorage = new PriceStorage();
+        for (int i = 0; i < 200000; i++) {
+            if (i % 100 == 0)
+                System.out.print(".");
+            priceStorage.storePrice(new Message(new byte[] {0x49,  0x00, 0x00, (byte) (Math.random() * 255), (byte) (Math.random() * 255), 0x00, 0x65}));
+        }
     }
 
     @Test

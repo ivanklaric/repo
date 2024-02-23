@@ -1,11 +1,11 @@
 package com.protohackers.means;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PriceStorage {
 
-    private final List<Message> messages = new LinkedList<>();
+    private final List<Message> messages = new ArrayList<>();
 
 
     public int getMeanPrice(int minTime, int maxTime) {
@@ -27,10 +27,6 @@ public class PriceStorage {
     }
 
     public void storePrice(Message message) {
-        int insertAtIndex = 0;
-        while (insertAtIndex < messages.size() && messages.get(insertAtIndex).getTimestamp() < message.getTimestamp()) {
-            insertAtIndex++;
-        }
-        messages.add(insertAtIndex, message);
+        messages.add(message);
     }
 }
