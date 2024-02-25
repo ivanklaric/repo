@@ -58,7 +58,6 @@ public class ServerThread extends Thread {
         while ((rawMessage = getNextMessage(inputStream)) != null) {
             var message = new Message(rawMessage);
             if (message.getType() == Message.MessageType.QUERY) {
-                System.out.println("Got message: " + message);
                 int mean = priceStorage.getMeanPrice(message.getMinTime(), message.getMaxTime());
                 try {
                     outputStream.writeInt(mean);

@@ -22,7 +22,6 @@ public class PriceStorage {
         }
         if (numWithinRange == 0)
             return 0;
-        System.out.println("numWithinRange: " + numWithinRange + ", totalPrice: " + totalPrice);
         long solution = totalPrice / numWithinRange;
         return (int) solution;
     }
