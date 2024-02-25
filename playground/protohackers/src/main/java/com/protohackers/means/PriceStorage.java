@@ -12,7 +12,7 @@ public class PriceStorage {
         if (minTime > maxTime)
             return 0;
 
-        int totalPrice = 0;
+        long totalPrice = 0;
         int numWithinRange = 0;
         for (var msg : messages) {
             if (msg.getTimestamp() >= minTime && msg.getTimestamp() <= maxTime) {
@@ -23,7 +23,8 @@ public class PriceStorage {
         if (numWithinRange == 0)
             return 0;
         System.out.println("numWithinRange: " + numWithinRange + ", totalPrice: " + totalPrice);
-        return totalPrice / numWithinRange;
+        long solution = totalPrice / numWithinRange;
+        return (int) solution;
     }
 
     public void storePrice(Message message) {
