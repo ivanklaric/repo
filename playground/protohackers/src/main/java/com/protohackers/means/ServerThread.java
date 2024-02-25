@@ -57,9 +57,8 @@ public class ServerThread extends Thread {
         byte[] rawMessage;
         while ((rawMessage = getNextMessage(inputStream)) != null) {
             var message = new Message(rawMessage);
-            System.out.println("Got message: " + message);
             if (message.getType() == Message.MessageType.QUERY) {
-                System.out.println("\tQuery message: minTime:" + message.getMinTime() + " maxTime:" + message.getMaxTime());
+                System.out.println("Got message: " + message);
                 int mean = priceStorage.getMeanPrice(message.getMinTime(), message.getMaxTime());
                 try {
                     outputStream.writeInt(mean);
@@ -68,7 +67,6 @@ public class ServerThread extends Thread {
                 }
             }
             if (message.getType() == Message.MessageType.INSERT) {
-                System.out.println("\tInsert message: price:" + message.getPrice() + " timestamp:" + message.getTimestamp());
                 priceStorage.storePrice(message);
             }
         }
