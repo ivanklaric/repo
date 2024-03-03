@@ -96,7 +96,7 @@ public class ServerThread extends Thread {
                     return; // there's an error in the underlying protocol, we better die.
                 }
                 try {
-                    String message = readLine(reader); //reader.readLine();
+                    String message = reader.readLine();
                     if (message == null) {
                         System.out.println("Client disconnected.");
                         break;
