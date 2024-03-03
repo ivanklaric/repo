@@ -90,7 +90,7 @@ public class ServerThread extends Thread {
             messageQueue.addMessage("* " + thisUser + " has entered the room");
             while (true) {
                 try {
-                    socket.setSoTimeout(500);
+                    socket.setSoTimeout(100);
                 } catch (SocketException e) {
                     System.out.println("SocketException when setSoTimeout(), dying.");
                     return; // there's an error in the underlying protocol, we better die.
