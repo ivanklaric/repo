@@ -7,7 +7,6 @@ import java.net.SocketTimeoutException;
 
 public class ServerThread extends Thread {
     private final Socket socket;
-    private int messageQueueIndex = 0;
     private String thisUser = "";
 
     private static final MessageQueue messageQueue = new MessageQueue();
@@ -18,12 +17,13 @@ public class ServerThread extends Thread {
     }
 
     private void processMessageQueue(BufferedWriter writer) throws IOException {
-        while (messageQueue.getUnreadMessages(messageQueueIndex) > 0) {
-            String msg = messageQueue.getMessageAtIndex(messageQueueIndex++);
+        while (messageQueue.getUnreadMessages(thisUser) > 0) {
+            String msg = messageQueue.getMessageAtIndex(messageQueue.getNextMessageIndex(thisUser) );
             // we don't want to echo our own messages
             if (!msg.startsWith("[" + thisUser + "]") && !msg.startsWith("* " + thisUser + " has")) {
                 sendMessageToClient(writer, msg);
             }
+            messageQueue.incrementMessageIndex(thisUser);
         }
     }
 
