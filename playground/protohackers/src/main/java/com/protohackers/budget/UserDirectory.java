@@ -21,4 +21,8 @@ public class UserDirectory {
     public synchronized int getUserCount() {
         return users.size();
     }
+
+    public synchronized boolean hasUser(String user) {
+        return users.contains(user);
+    }
 }

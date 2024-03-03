@@ -18,24 +18,6 @@ public class ServerThread extends Thread {
         this.socket = socket;
     }
 
-    private String readLine(Reader reader) throws IOException {
-        var ret = new StringBuilder();
-        char ch = ' ';
-        while (ch != '\n') {
-            int charRead = reader.read();
-            if (charRead == -1) {
-                return null;
-            }
-            ch = (char) charRead;
-            if (ch == '\r') {
-                System.out.println("CR found!");
-            }
-            if (ch != '\n')
-                ret.append(ch);
-        }
-        return ret.toString();
-    }
-
     private void processMessageQueue(BufferedWriter writer) throws IOException {
         while (messageQueue.getUnreadMessages(thisUser) > 0) {
             String msg = messageQueue.getMessageAtIndex(messageQueue.getNextMessageIndex(thisUser) );
@@ -88,13 +70,22 @@ public class ServerThread extends Thread {
             sendMessageToClient(writer, "* The room contains: " + userDirectory.userList());
             userDirectory.registerUser(thisUser);
             messageQueue.addMessage("* " + thisUser + " has entered the room");
-            while (true) {
-                try {
-                    socket.setSoTimeout(2000);
-                } catch (SocketException e) {
-                    System.out.println("SocketException when setSoTimeout(), dying.");
-                    return; // there's an error in the underlying protocol, we better die.
+
+            var messageListeningThread = new Thread() {
+                public void run() {
+                    try {
+                        while (userDirectory.hasUser(thisUser)) {
+                            processMessageQueue(writer);
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
+            };
+            messageListeningThread.start();
+
+            while (true) {
+                // this is the thread reading from the user
                 try {
                     String message = reader.readLine();
                     if (message == null) {
@@ -102,12 +93,9 @@ public class ServerThread extends Thread {
                         break;
                     }
                     messageQueue.addMessage("[" + thisUser + "] " + message);
-                } catch (SocketTimeoutException timeoutEx) {
-                    // timeout, see if there are messages in the queue to show
-                    processMessageQueue(writer);
                 } catch (IOException ioEx) {
                     // client probably disconnected, we better break
-                    System.out.println("Client disconnected.");
+                    System.out.println("Error reading from the client: " + ioEx);
                     break;
                 }
             }
