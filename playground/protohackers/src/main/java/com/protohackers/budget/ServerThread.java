@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ServerThread extends Thread {
     private final Socket socket;
@@ -20,7 +22,11 @@ public class ServerThread extends Thread {
         var ret = new StringBuilder();
         char ch = ' ';
         while (ch != '\n') {
-            ch = (char) reader.read();
+            int charRead = reader.read();
+            if (charRead == -1) {
+                return null;
+            }
+            ch = (char) charRead;
             if (ch == '\r') {
                 System.out.println("CR found!");
             }
@@ -46,6 +52,14 @@ public class ServerThread extends Thread {
         writer.flush();
     }
 
+    private boolean isValidUsername(String username) {
+        if (username == null || username.isEmpty())
+            return false;
+        Pattern pattern = Pattern.compile("[a-z0-9]+", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(username);
+        return matcher.find();
+    }
+
     public void run() {
         BufferedReader reader;
         try {
@@ -63,24 +77,38 @@ public class ServerThread extends Thread {
             // first, send intro and ask for a name
             sendMessageToClient(writer, "Welcome to budgetchat! What shall I call you?");
             String name = reader.readLine();
-            if (name != null) {
-                thisUser = name;
-                // show the user who is in the room
-                sendMessageToClient(writer, "* The room contains: " + userDirectory.userList());
-                userDirectory.registerUser(thisUser);
-                messageQueue.addMessage("* " + thisUser + " has entered the room");
+            if (!isValidUsername(name)) {
+                writer.close();
+                socket.close();
+                return;
             }
-            while (thisUser != null) {
+
+            thisUser = name;
+            // show the user who is in the room
+            sendMessageToClient(writer, "* The room contains: " + userDirectory.userList());
+            userDirectory.registerUser(thisUser);
+            messageQueue.addMessage("* " + thisUser + " has entered the room");
+            while (true) {
                 try {
                     socket.setSoTimeout(500);
                 } catch (SocketException e) {
+                    System.out.println("SocketException when setSoTimeout(), dying.");
                     return; // there's an error in the underlying protocol, we better die.
                 }
                 try {
                     String message = readLine(reader); //reader.readLine();
+                    if (message == null) {
+                        System.out.println("Client disconnected.");
+                        break;
+                    }
                     messageQueue.addMessage("[" + thisUser + "] " + message);
                 } catch (SocketTimeoutException timeoutEx) {
+                    // timeout, see if there are messages in the queue to show
                     processMessageQueue(writer);
+                } catch (IOException ioEx) {
+                    // client probably disconnected, we better break
+                    System.out.println("Client disconnected.");
+                    break;
                 }
             }
             userDirectory.removeUser(thisUser);
@@ -91,7 +119,7 @@ public class ServerThread extends Thread {
             writer.close();
             socket.close();
         } catch (IOException e) {
-            // do nothing
+            System.out.println("Unknown IO Exception: " + e.toString());
         }
     }
 }
