@@ -16,6 +16,20 @@ public class ServerThread extends Thread {
         this.socket = socket;
     }
 
+    private String readLine(Reader reader) throws IOException {
+        var ret = new StringBuilder();
+        char ch = ' ';
+        while (ch != '\n') {
+            ch = (char) reader.read();
+            if (ch == '\r') {
+                System.out.println("CR found!");
+            }
+            if (ch != '\n')
+                ret.append(ch);
+        }
+        return ret.toString();
+    }
+
     private void processMessageQueue(BufferedWriter writer) throws IOException {
         while (messageQueue.getUnreadMessages(thisUser) > 0) {
             String msg = messageQueue.getMessageAtIndex(messageQueue.getNextMessageIndex(thisUser) );
@@ -63,9 +77,7 @@ public class ServerThread extends Thread {
                     return; // there's an error in the underlying protocol, we better die.
                 }
                 try {
-                    String message = reader.readLine();
-                    if (message == null)
-                        break;
+                    String message = readLine(reader); //reader.readLine();
                     messageQueue.addMessage("[" + thisUser + "] " + message);
                 } catch (SocketTimeoutException timeoutEx) {
                     processMessageQueue(writer);

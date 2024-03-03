@@ -163,7 +163,7 @@ resource "aws_ecs_service" "service" {
   cluster                            = aws_ecs_cluster.protohackers_cluster.id
   task_definition                    = aws_ecs_task_definition.echo_service_task.arn
   desired_count                      = 1
-  deployment_minimum_healthy_percent = 50
+  deployment_minimum_healthy_percent = 0
   deployment_maximum_percent         = 100
   launch_type                        = "FARGATE"
 

@@ -47,6 +47,7 @@ public class MessageQueue {
     }
 
     public synchronized void addMessage(String msg) {
+        System.out.println(msg);
         messages.add(msg);
     }
 }
