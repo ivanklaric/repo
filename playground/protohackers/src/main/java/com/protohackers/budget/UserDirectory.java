@@ -12,6 +12,7 @@ public class UserDirectory {
 
     public synchronized void removeUser(String user) {
         users.remove(user);
+        System.out.println("removed User " + user + ". Remaining users: " + userList());
     }
 
     public synchronized String userList() {
