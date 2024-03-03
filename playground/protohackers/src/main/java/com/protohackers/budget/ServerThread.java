@@ -47,7 +47,7 @@ public class ServerThread extends Thread {
         }
         try {
             // first, send intro and ask for a name
-            sendMessageToClient(writer, "Welcome to budgetchat! What shall I call you?\n");
+            sendMessageToClient(writer, "Welcome to budgetchat! What shall I call you?");
             String name = reader.readLine();
             if (name != null) {
                 thisUser = name;
@@ -72,7 +72,10 @@ public class ServerThread extends Thread {
                 }
             }
             userDirectory.removeUser(thisUser);
-            messageQueue.addMessage("* " + thisUser + " has left the room");
+            if (userDirectory.getUserCount() > 0) {
+                // we're not the last user, announce to others we left. Otherwise there will be noone to read this.
+                messageQueue.addMessage("* " + thisUser + " has left the room");
+            }
             writer.close();
             socket.close();
         } catch (IOException e) {

@@ -17,4 +17,8 @@ public class UserDirectory {
     public synchronized String userList() {
         return String.join(", ", users.stream().toList());
     }
+
+    public synchronized int getUserCount() {
+        return users.size();
+    }
 }
