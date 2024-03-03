@@ -2,8 +2,6 @@ package com.protohackers.budget;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,17 +69,15 @@ public class ServerThread extends Thread {
             userDirectory.registerUser(thisUser);
             messageQueue.addMessage("* " + thisUser + " has entered the room");
 
-            var messageListeningThread = new Thread() {
-                public void run() {
-                    try {
-                        while (userDirectory.hasUser(thisUser)) {
-                            processMessageQueue(writer);
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+            var messageListeningThread = new Thread(() -> {
+                try {
+                    while (userDirectory.hasUser(thisUser)) {
+                        processMessageQueue(writer);
                     }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-            };
+            });
             messageListeningThread.start();
 
             while (true) {
