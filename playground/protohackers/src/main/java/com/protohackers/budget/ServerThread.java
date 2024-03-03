@@ -119,7 +119,7 @@ public class ServerThread extends Thread {
             writer.close();
             socket.close();
         } catch (IOException e) {
-            System.out.println("Unknown IO Exception: " + e.toString());
+            System.out.println("Unknown IO Exception: " + e);
         }
     }
 }
