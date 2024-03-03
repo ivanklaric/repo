@@ -75,7 +75,7 @@ public class ServerThread extends Thread {
                         processMessageQueue(writer);
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    // failed to write, might as well give up
                 }
             });
             messageListeningThread.start();
