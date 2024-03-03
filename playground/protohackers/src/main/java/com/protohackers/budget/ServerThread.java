@@ -55,7 +55,7 @@ public class ServerThread extends Thread {
     private boolean isValidUsername(String username) {
         if (username == null || username.isEmpty())
             return false;
-        Pattern pattern = Pattern.compile("[a-z0-9]+", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("^[a-z0-9]+$", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(username);
         return matcher.find();
     }
