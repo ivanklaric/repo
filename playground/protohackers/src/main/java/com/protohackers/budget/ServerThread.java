@@ -76,6 +76,7 @@ public class ServerThread extends Thread {
                     }
                 } catch (IOException e) {
                     // failed to write, might as well give up
+                    System.out.println("IOException while processMessageQueue: " + e);
                 }
             });
             messageListeningThread.start();
