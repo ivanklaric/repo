@@ -67,15 +67,19 @@ public class ServerThread extends Thread {
 
             thisUser = name;
             // show the user who is in the room
-            sendMessageToClient(writer, "* The room contains: " + userDirectory.userList());
-            userDirectory.registerUser(thisUser);
-            messageQueue.addMessage(thisUser, "* " + thisUser + " has entered the room");
+            synchronized(messageQueue) {
+                sendMessageToClient(writer, "* The room contains: " + userDirectory.userList());
+                userDirectory.registerUser(thisUser);
+                messageQueue.addMessage(thisUser, "* " + thisUser + " has entered the room");
+            }
 
             // this is the thread relaying messages from other users
             var messageListeningThread = new Thread(() -> {
                 try {
                     while (userDirectory.hasUser(thisUser)) {
-                        processMessageQueue(writer);
+                        synchronized(messageQueue) {
+                            processMessageQueue(writer);
+                        }
                     }
                 } catch (IOException e) {
                     // failed to write, might as well give up
