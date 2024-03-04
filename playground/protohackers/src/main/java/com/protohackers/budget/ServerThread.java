@@ -101,10 +101,12 @@ public class ServerThread extends Thread {
             }
 
             // we exited the read loop, so the client obviously disconnected.
-            userDirectory.removeUser(thisUser);
-            if (userDirectory.getUserCount() > 0) {
-                // we're not the last user, announce to others we left. Otherwise there will be noone to read this.
-                messageQueue.addMessage(thisUser,"* " + thisUser + " has left the room");
+            synchronized(messageQueue) {
+                userDirectory.removeUser(thisUser);
+                if (userDirectory.getUserCount() > 0) {
+                    // we're not the last user, announce to others we left. Otherwise, there will be no one to read this.
+                    messageQueue.addMessage(thisUser, "* " + thisUser + " has left the room");
+                }
             }
             writer.close();
             socket.close();
