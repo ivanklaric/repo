@@ -29,6 +29,7 @@ public class ServerThread extends Thread {
     }
 
     private void sendMessageToClient(BufferedWriter writer, String msg) throws IOException {
+        System.out.println("Sent to " + thisUser+ ": " + msg);
         writer.write(msg + "\n");
         writer.flush();
     }
