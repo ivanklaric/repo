@@ -19,8 +19,9 @@ public class ServerThread extends Thread {
     private void processMessageQueue(BufferedWriter writer) throws IOException {
         while (messageQueue.getUnreadMessages(thisUser) > 0) {
             String msg = messageQueue.getMessageAtIndex(messageQueue.getNextMessageIndex(thisUser) );
-            // we don't want to echo our own messages
-            if (!msg.startsWith("[" + thisUser + "]") && !msg.startsWith("* " + thisUser + " has")) {
+            String user = messageQueue.getUserAtIndex(messageQueue.getNextMessageIndex(thisUser));
+            if (!user.equals(thisUser)) {
+                // we don't want to echo our own messages
                 sendMessageToClient(writer, msg);
             }
             messageQueue.incrementMessageIndex(thisUser);
@@ -67,8 +68,9 @@ public class ServerThread extends Thread {
             // show the user who is in the room
             sendMessageToClient(writer, "* The room contains: " + userDirectory.userList());
             userDirectory.registerUser(thisUser);
-            messageQueue.addMessage("* " + thisUser + " has entered the room");
+            messageQueue.addMessage(thisUser, "* " + thisUser + " has entered the room");
 
+            // this is the thread relaying messages from other users
             var messageListeningThread = new Thread(() -> {
                 try {
                     while (userDirectory.hasUser(thisUser)) {
@@ -89,17 +91,19 @@ public class ServerThread extends Thread {
                         System.out.println("Client disconnected.");
                         break;
                     }
-                    messageQueue.addMessage("[" + thisUser + "] " + message);
+                    messageQueue.addMessage(thisUser,"[" + thisUser + "] " + message);
                 } catch (IOException ioEx) {
                     // client probably disconnected, we better break
                     System.out.println("Error reading from the client: " + ioEx);
                     break;
                 }
             }
+
+            // we exited the read loop, so the client obviously disconnected.
             userDirectory.removeUser(thisUser);
             if (userDirectory.getUserCount() > 0) {
                 // we're not the last user, announce to others we left. Otherwise there will be noone to read this.
-                messageQueue.addMessage("* " + thisUser + " has left the room");
+                messageQueue.addMessage(thisUser,"* " + thisUser + " has left the room");
             }
             writer.close();
             socket.close();

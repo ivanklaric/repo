@@ -10,9 +10,9 @@ class MessageQueueTest {
     public void testHappyPath() {
         MessageQueue q = new MessageQueue();
         assertEquals(0, q.getUnreadMessages("foo"));
-        q.addMessage("first");
-        q.addMessage("second");
-        q.addMessage("third");
+        q.addMessage("foo","first");
+        q.addMessage("foo","second");
+        q.addMessage("foo","third");
         assertEquals(3, q.getUnreadMessages("foo"));
         assertEquals("first", q.getMessageAtIndex(q.getNextMessageIndex("foo")));
         q.incrementMessageIndex("foo");
@@ -31,8 +31,8 @@ class MessageQueueTest {
         var q = new MessageQueue();
         assertEquals(0, q.getUnreadMessages("foo"));
         assertEquals(0, q.getUnreadMessages("bar"));
-        q.addMessage("first");
-        q.addMessage("second");
+        q.addMessage("foo","first");
+        q.addMessage("foo","second");
         q.incrementMessageIndex("foo"); // simulate foo read the message
         q.incrementMessageIndex("foo"); // simulate foo read the message
         q.incrementMessageIndex("bar"); // simulate foo read the message

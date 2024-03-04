@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 public class MessageQueue {
-    private final List<String> messages = new ArrayList<>();
+    record Message(String user, String message) {}
+    private final List<Message> messages = new ArrayList<>();
     private final Map<String, Integer> userIndexMap = new HashMap<>();
 
     public synchronized String getMessageAtIndex(int index) {
@@ -15,7 +16,16 @@ public class MessageQueue {
         if (index < 0)
             return null;
 
-        return messages.get(index);
+        return messages.get(index).message();
+    }
+
+    public synchronized String getUserAtIndex(int index) {
+        if (index >= messages.size())
+            return null;
+        if (index < 0)
+            return null;
+
+        return messages.get(index).user();
     }
 
     public synchronized int getUnreadMessages(String user) {
@@ -46,8 +56,8 @@ public class MessageQueue {
         return maxIndex;
     }
 
-    public synchronized void addMessage(String msg) {
+    public synchronized void addMessage(String user, String msg) {
         System.out.println(msg);
-        messages.add(msg);
+        messages.add(new Message(user, msg));
     }
 }
