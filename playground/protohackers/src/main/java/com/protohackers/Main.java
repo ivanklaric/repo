@@ -1,8 +1,10 @@
 package com.protohackers;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -45,7 +47,18 @@ public class Main {
     }
 
     public static void runUdpApps(String appName, int port) {
-        System.out.println("Implement me");
+        if (!appName.equals("unusual-server"))
+            return;
+        while (true) {
+            try {
+                var socket = new DatagramSocket(port);
+                var thread = new com.protohackers.unusual.ServerThread(socket);
+                thread.start();
+            } catch (SocketException e) {
+                System.out.println("Error when creating a socket: " + e);
+                return;
+            }
+        }
     }
 
     public static void main(String[] args) {
