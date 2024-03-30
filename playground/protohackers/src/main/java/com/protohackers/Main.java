@@ -1,5 +1,8 @@
 package com.protohackers;
 
+import com.protohackers.unusual.UnusualClient;
+import com.protohackers.unusual.UnusualMessage;
+
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
@@ -28,7 +31,7 @@ public class Main {
         return null;
     }
 
-    public static void runSocketApps(String appName, int port) {
+    public static void runTcpApps(String appName, int port) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {
                 try {
@@ -67,8 +70,7 @@ public class Main {
         System.out.println("Listening on " + port);
         String[] listOfAcceptableArgs = {"echo", "prime", "means", "budget", "unusual-server", "unusual-client"};
         Set<String> acceptableArgs = new HashSet<>(Arrays.asList(listOfAcceptableArgs));
-        String appName = args[0];
-        if (args.length < 1 || !acceptableArgs.contains(appName)) {
+        if (args.length < 1 || !acceptableArgs.contains(args[0])) {
             System.out.println("Args:");
             System.out.println("echo  - for EchoService");
             System.out.println("prime - for PrimeTime");
@@ -78,10 +80,23 @@ public class Main {
             System.out.println("unusual-client - for UnusualDatabaseProgram client");
             return;
         }
-        if (!appName.equals("unusual")) {
-            runSocketApps(appName, port);
+        String appName = args[0];
+        if (!appName.startsWith("unusual")) {
+            runTcpApps(appName, port);
         } else {
-            runUdpApps(appName, port);
+            if (appName.equals("unusual-server"))
+                runUdpApps(appName, port);
+            if (appName.equals("unusual-client")) {
+                if (args.length < 4) {
+                    System.out.println("unusual-client <server> <port> <message>");
+                    return;
+                }
+                String server = args[1];
+                int serverPort = Integer.parseInt(args[2]);
+                String msg = args[3];
+                UnusualClient.sendMessage(server, serverPort, new UnusualMessage(msg));
+            }
+
         }
     }
 
