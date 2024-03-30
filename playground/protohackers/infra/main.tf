@@ -96,6 +96,11 @@ resource "aws_ecs_task_definition" "echo_service_task" {
           containerPort = var.container_port
           hostPort      = var.container_port
           protocol      = "tcp"
+        },
+        {
+          containerPort = var.container_port
+          hostPort      = var.container_port
+          protocol      = "udp"
         }
       ]
       logConfiguration = {
@@ -129,6 +134,14 @@ resource "aws_security_group" "ecs_container_instance" {
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description     = "Allow ingress traffic"
+    from_port       = var.container_port
+    to_port         = var.container_port
+    protocol        = "udp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 

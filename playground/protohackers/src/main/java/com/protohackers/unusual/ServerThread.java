@@ -14,13 +14,6 @@ public class ServerThread extends Thread {
         this.socket = socket;
     }
 
-    private String processMessage(String inputMessage) {
-        if (inputMessage.equals("version")) {
-            return "version=Ken's Key-Value Store 1.0";
-        }
-        return db.processMessage(new UnusualMessage(inputMessage));
-    }
-
     public void run() {
         byte[] receiveData = new byte[1024];
         while (true) {
@@ -33,7 +26,7 @@ public class ServerThread extends Thread {
                 break;
             }
             String receivedMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            String responseMsg = processMessage(receivedMsg);
+            UnusualMessage responseMsg = db.processMessage(new UnusualMessage(receivedMsg));
             System.out.println("Received message: [" + receivedMsg + "] Response=[" + responseMsg + "]");
             if (responseMsg == null) {
                 continue;
@@ -42,7 +35,7 @@ public class ServerThread extends Thread {
             // Send response
             InetAddress clientAddress = receivePacket.getAddress();
             int clientPort = receivePacket.getPort();
-            byte[] responseData = responseMsg.getBytes();
+            byte[] responseData = responseMsg.toString().getBytes();
             DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientAddress, clientPort);
 
             try {

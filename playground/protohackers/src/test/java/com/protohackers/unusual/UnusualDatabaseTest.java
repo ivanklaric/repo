@@ -10,13 +10,13 @@ class UnusualDatabaseTest {
     public void testRandomCases() {
         var db = new UnusualDatabase();
         assertNull(db.processMessage(new UnusualMessage("foo=bar")));
-        assertEquals("bar", db.processMessage(new UnusualMessage("foo")));
+        assertEquals("bar", db.processMessage(new UnusualMessage("foo")).getValue());
         assertNull(db.processMessage(new UnusualMessage("foo=baz")));
-        assertEquals("baz", db.processMessage(new UnusualMessage("foo")));
+        assertEquals("baz", db.processMessage(new UnusualMessage("foo")).getValue());
         assertNull(db.processMessage(new UnusualMessage("foo=")));
-        assertEquals("", db.processMessage(new UnusualMessage("foo")));
+        assertEquals("", db.processMessage(new UnusualMessage("foo")).getValue());
         assertNull(db.processMessage(new UnusualMessage("=foo")));
-        assertEquals("foo", db.processMessage(new UnusualMessage("")));
+        assertEquals("foo", db.processMessage(new UnusualMessage("")).getValue());
     }
 
 }
