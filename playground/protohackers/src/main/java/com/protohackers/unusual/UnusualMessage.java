@@ -3,7 +3,7 @@ package com.protohackers.unusual;
 public class UnusualMessage {
     public enum MessageType {
         INSERT, RETRIEVE
-    };
+    }
 
     public MessageType getType() {
         return type;

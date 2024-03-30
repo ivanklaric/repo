@@ -5,8 +5,7 @@ import java.net.*;
 
 public class UnusualClient {
     public static void sendMessage(String server, int port, UnusualMessage msg) {
-        try {
-            DatagramSocket socket = new DatagramSocket();
+        try (DatagramSocket socket = new DatagramSocket()) {
             byte[] data = msg.toString().getBytes();
             InetAddress address = InetAddress.getByName(server);
             DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
