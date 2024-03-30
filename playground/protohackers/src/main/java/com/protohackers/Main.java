@@ -39,6 +39,7 @@ public class Main {
                     var thread = buildNewServerThread(appName, socket);
                     if (thread != null)
                         thread.start();
+                    System.out.println("Listening on " + port);
                 } catch (IOException e) {
                     System.out.println("Error creating a socket: " + e);
                     return;
@@ -57,6 +58,7 @@ public class Main {
                 var socket = new DatagramSocket(port);
                 var thread = new com.protohackers.unusual.ServerThread(socket);
                 thread.start();
+                System.out.println("Listening on " + port);
             } catch (SocketException e) {
                 System.out.println("Error when creating a socket: " + e);
                 return;
@@ -67,7 +69,6 @@ public class Main {
     public static void main(String[] args) {
         int port = 9003; // TODO: this should come from command line args
 
-        System.out.println("Listening on " + port);
         String[] listOfAcceptableArgs = {"echo", "prime", "means", "budget", "unusual-server", "unusual-client"};
         Set<String> acceptableArgs = new HashSet<>(Arrays.asList(listOfAcceptableArgs));
         if (args.length < 1 || !acceptableArgs.contains(args[0])) {
@@ -95,6 +96,7 @@ public class Main {
                 int serverPort = Integer.parseInt(args[2]);
                 String msg = args[3];
                 UnusualClient.sendMessage(server, serverPort, new UnusualMessage(msg));
+                System.out.println("Message " + msg + " sent to " + server + ":" + serverPort + ".");
             }
 
         }
