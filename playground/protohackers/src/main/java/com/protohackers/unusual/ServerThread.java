@@ -1,6 +1,5 @@
 package com.protohackers.unusual;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -8,8 +7,8 @@ import java.net.InetAddress;
 
 public class ServerThread extends Thread {
 
-    private DatagramSocket socket;
-    private UnusualDatabase db = new UnusualDatabase();
+    private final DatagramSocket socket;
+    private final UnusualDatabase db = new UnusualDatabase();
 
     public ServerThread(DatagramSocket socket) {
         this.socket = socket;
