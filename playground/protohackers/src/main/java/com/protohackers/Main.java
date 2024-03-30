@@ -53,16 +53,13 @@ public class Main {
     public static void runUdpApps(String appName, int port) {
         if (!appName.equals("unusual-server"))
             return;
-        while (true) {
-            try {
-                var socket = new DatagramSocket(port);
-                var thread = new com.protohackers.unusual.ServerThread(socket);
-                thread.start();
-                System.out.println("Listening on " + port);
-            } catch (SocketException e) {
-                System.out.println("Error when creating a socket: " + e);
-                return;
-            }
+        try {
+            var socket = new DatagramSocket(port);
+            var thread = new com.protohackers.unusual.ServerThread(socket);
+            thread.start();
+            System.out.println("Listening on " + port);
+        } catch (SocketException e) {
+            System.out.println("Error when creating a UDP socket: " + e);
         }
     }
 
@@ -95,8 +92,8 @@ public class Main {
                 String server = args[1];
                 int serverPort = Integer.parseInt(args[2]);
                 String msg = args[3];
+                System.out.println("Sending message " + msg + " to " + server + ":" + serverPort + ".");
                 UnusualClient.sendMessage(server, serverPort, new UnusualMessage(msg));
-                System.out.println("Message " + msg + " sent to " + server + ":" + serverPort + ".");
             }
 
         }

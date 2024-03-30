@@ -9,19 +9,24 @@ import java.net.InetAddress;
 public class ServerThread extends Thread {
 
     private DatagramSocket socket;
+    private UnusualDatabase db = new UnusualDatabase();
 
     public ServerThread(DatagramSocket socket) {
         this.socket = socket;
     }
 
     private String processMessage(String inputMessage) {
-        return "version=Ken's Key-Value Store 1.0\n";
+        if (inputMessage.equals("version")) {
+            return "version=Ken's Key-Value Store 1.0";
+        }
+        return db.processMessage(new UnusualMessage(inputMessage));
     }
 
     public void run() {
         byte[] receiveData = new byte[1024];
         while (true) {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            // Receive request
             try {
                 socket.receive(receivePacket);
             } catch (IOException e) {
@@ -30,7 +35,12 @@ public class ServerThread extends Thread {
             }
             String receivedMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
             String responseMsg = processMessage(receivedMsg);
+            System.out.println("Received message: [" + receivedMsg + "] Response=[" + responseMsg + "]");
+            if (responseMsg == null) {
+                continue;
+            }
 
+            // Send response
             InetAddress clientAddress = receivePacket.getAddress();
             int clientPort = receivePacket.getPort();
             byte[] responseData = responseMsg.getBytes();
