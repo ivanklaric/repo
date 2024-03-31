@@ -16,7 +16,7 @@ public class MessageIO {
 
 
     private static void writeString(Writer writer, String str) throws IOException {
-        writer.write((int) str.length());
+        writer.write(str.length());
         if (!str.isEmpty()) {
             writer.write(str);
         }
@@ -32,9 +32,8 @@ public class MessageIO {
     public static void writeMessage(Writer writer, Message message) throws IOException {
         writeU8(writer, message.getType().errorCode);
         switch(message.getType()) {
-            case Message.MessageType.ERROR -> {
+            case Message.MessageType.ERROR ->
                 writeString(writer, message.getErrorMessage());
-            }
             case Message.MessageType.PLATE -> {
                 writeString(writer, message.getPlate());
                 writeU32(writer, message.getTimestamp());

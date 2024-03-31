@@ -14,7 +14,7 @@ public class Message {
 
 
         public final char errorCode;
-        private MessageType(char errorCode) {
+        MessageType(char errorCode) {
             this.errorCode = errorCode;
         }
     }
