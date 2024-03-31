@@ -63,7 +63,7 @@ public class ServerThread extends Thread {
                         System.out.println("Client disconnected.");
                         break;
                     }
-                    writer.write(message + "\n");
+                    writer.write(MessageRewriter.rewriteMessage(message) + "\n");
                     writer.flush();
                 } catch (IOException ioEx) {
                     // client probably disconnected, we better break
