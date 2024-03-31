@@ -8,7 +8,7 @@ public class ServerThread extends Thread {
     private final Socket clientSocket;
     private Socket serverSocket;
 
-    class ThreadSynchronization {
+    static class ThreadSynchronization {
         private boolean serverThreadFinished = false;
         private boolean clientThreadFinished = false;
         private final Object lock = new Object();
