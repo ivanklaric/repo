@@ -30,6 +30,9 @@ public class Main {
         if (serviceName.equals("mob")) {
             return new com.protohackers.mob.ServerThread(socket);
         }
+        if (serviceName.equals("speed")) {
+            return new com.protohackers.speed.ServerThread(socket);
+        }
         return null;
     }
 
@@ -68,7 +71,8 @@ public class Main {
     public static void main(String[] args) {
         int port = 9003; // TODO: this should come from command line args
 
-        String[] listOfAcceptableArgs = {"echo", "prime", "means", "budget", "unusual-server", "unusual-client", "mob"};
+        String[] listOfAcceptableArgs =
+                {"echo", "prime", "means", "budget", "unusual-server", "unusual-client", "mob", "speed"};
         Set<String> acceptableArgs = new HashSet<>(Arrays.asList(listOfAcceptableArgs));
         if (args.length < 1 || !acceptableArgs.contains(args[0])) {
             System.out.println("Args:");
