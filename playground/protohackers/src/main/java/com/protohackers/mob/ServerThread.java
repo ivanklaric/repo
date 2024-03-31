@@ -47,6 +47,23 @@ public class ServerThread extends Thread {
         }
     }
 
+    private String readLine(BufferedReader reader) {
+        StringBuilder builder = new StringBuilder();
+        int charValue;
+        while (true) {
+            try {
+                if ((charValue = reader.read()) == -1) break;
+            } catch (IOException e) {
+                break;
+            }
+            if ((char)charValue == '\n') {
+                return builder.toString();
+            }
+            builder.append((char)charValue);
+        }
+        return null;
+    }
+
     private Thread createListenerThread(BufferedReader reader,
                                         BufferedWriter writer,
                                         ThreadSynchronization syncMechanism,
@@ -58,11 +75,14 @@ public class ServerThread extends Thread {
                 }
                 // this is the thread reading from the user and writing to the server
                 try {
-                    String message = reader.readLine();
+                    String message = readLine(reader);
                     if (message == null) {
                         System.out.println("Client disconnected.");
                         break;
                     }
+                    String rewrittenMessage = MessageRewriter.rewriteMessage(message);
+                    System.out.println("Got: " + message);
+                    System.out.println("Sending: " + rewrittenMessage);
                     writer.write(MessageRewriter.rewriteMessage(message) + "\n");
                     writer.flush();
                 } catch (IOException ioEx) {
