@@ -26,7 +26,9 @@ public class Main {
         }
         if (serviceName.equals("budget")) {
             return new com.protohackers.budget.ServerThread(socket);
-
+        }
+        if (serviceName.equals("mob")) {
+            return new com.protohackers.mob.ServerThread(socket);
         }
         return null;
     }
@@ -66,7 +68,7 @@ public class Main {
     public static void main(String[] args) {
         int port = 9003; // TODO: this should come from command line args
 
-        String[] listOfAcceptableArgs = {"echo", "prime", "means", "budget", "unusual-server", "unusual-client"};
+        String[] listOfAcceptableArgs = {"echo", "prime", "means", "budget", "unusual-server", "unusual-client", "mob"};
         Set<String> acceptableArgs = new HashSet<>(Arrays.asList(listOfAcceptableArgs));
         if (args.length < 1 || !acceptableArgs.contains(args[0])) {
             System.out.println("Args:");
@@ -76,6 +78,7 @@ public class Main {
             System.out.println("budget - for BudgetChat");
             System.out.println("unusual-server - for UnusualDatabaseProgram server");
             System.out.println("unusual-client - for UnusualDatabaseProgram client");
+            System.out.println("mob - for Mob in the Middle");
             return;
         }
         String appName = args[0];
