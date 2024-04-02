@@ -2,6 +2,11 @@ package com.protohackers.speed;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 
 public class ServerThread extends Thread {
     public enum ThreadMode {
@@ -10,6 +15,9 @@ public class ServerThread extends Thread {
     private static final CarObservatory carObservatory = new CarObservatory();
     private Message cameraContext = null;
     private Message dispatcherContext = null;
+
+    private static final Map<Long, Semaphore> dispatcherSemaphores = new ConcurrentHashMap<>();
+    private static final Map<Long, List<Message>> ticketsToDispatch = new ConcurrentHashMap<>();
 
     private final Socket clientSocket;
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
@@ -26,13 +34,29 @@ public class ServerThread extends Thread {
     private synchronized void addDispatcher(Message msg) {
         if (msg.getType() != Message.MessageType.I_AM_DISPATCHER) return;
         dispatcherContext = msg;
-        // todo update some probably useful road: dispatcher mappings
+        synchronized (dispatcherSemaphores) {
+            for (var road : dispatcherContext.getDispatcherRoads()) {
+                dispatcherSemaphores.computeIfAbsent(road, k -> new Semaphore(1));
+            }
+        }
     }
 
     private synchronized void addCarObservation(Message msg) {
         if (msg.getType() != Message.MessageType.PLATE || cameraContext == null) return;
         carObservatory.addCarSighting(msg.getPlate(), msg.getTimestamp(),
                 cameraContext.getRoad(), cameraContext.getMile(), cameraContext.getLimit());
+        var ticketsToIssue = carObservatory.issueTickets();
+        for (var ticket : ticketsToIssue) {
+            try {
+                dispatcherSemaphores.get(ticket.getRoad()).acquire();
+                ticketsToDispatch.computeIfAbsent(ticket.getRoad(), k -> new ArrayList<>());
+                ticketsToDispatch.get(ticket.getRoad()).add(ticket);
+            } catch (InterruptedException e) {
+                break;
+            } finally {
+                dispatcherSemaphores.get(ticket.getRoad()).release();
+            }
+        }
     }
 
     public ServerThread(Socket socket) {
@@ -103,6 +127,29 @@ public class ServerThread extends Thread {
                 case Message.MessageType.I_AM_DISPATCHER -> {
                     threadMode = ThreadMode.DISPATCHER;
                     addDispatcher(msg);
+                    for (var road : dispatcherContext.getDispatcherRoads()) {
+                        Thread.ofVirtual().start( () -> {
+                            while (true) {
+                                try {
+                                    dispatcherSemaphores.get(road).acquire();
+                                    if (ticketsToDispatch.containsKey(road)) {
+                                        for (Message ticket : ticketsToDispatch.get(road)) {
+                                            try {
+                                                writeToClient(outputStream, ticket);
+                                            } catch (IOException e) {
+                                                return;
+                                            }
+                                        }
+                                    }
+                                    ticketsToDispatch.get(road).clear();
+                                } catch (InterruptedException e) {
+                                    return;
+                                } finally {
+                                    dispatcherSemaphores.get(road).release();
+                                }
+                            }
+                        });
+                    }
                 }
                 case Message.MessageType.PLATE ->
                     addCarObservation(msg);
