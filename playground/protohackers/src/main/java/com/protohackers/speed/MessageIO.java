@@ -22,6 +22,15 @@ public class MessageIO {
         }
     }
 
+    private static String readString(Reader reader) throws IOException {
+        int stringSize = reader.read();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < stringSize; i++) {
+            builder.append((char)reader.read());
+        }
+        return builder.toString();
+    }
+
     public static Message createErrorMessage(String message) {
         var ret = new Message();
         ret.setType(Message.MessageType.ERROR);
@@ -56,6 +65,11 @@ public class MessageIO {
         switch (msgType) {
             case 0x10:
                 ret.setType(Message.MessageType.ERROR);
+                try {
+                    ret.setErrorMessage(readString(reader));
+                } catch (IOException e) {
+                    return null;
+                }
                 break;
             case 0x20:
                 ret.setType(Message.MessageType.PLATE);
