@@ -15,7 +15,7 @@ public class MessageIO {
     }
 
     private static long readU32(Reader reader) throws IOException {
-        return (long) reader.read();
+        return reader.read();
     }
 
     private static void writeString(Writer writer, String str) throws IOException {
