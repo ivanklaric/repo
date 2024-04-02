@@ -10,10 +10,9 @@ class MessageIOTest {
 
     private ByteArrayOutputStream buildOutputStreamWithMessage(Message msg) {
         var outputStream = new ByteArrayOutputStream();
-        var writer = new OutputStreamWriter(outputStream);
         try {
-            MessageIO.writeMessage(writer, msg);
-            writer.flush();
+            MessageIO.writeMessage(outputStream, msg);
+            outputStream.flush();
         } catch (IOException e) {
             fail(e);
         }
@@ -23,9 +22,9 @@ class MessageIOTest {
     @Test
     public void testErrorMessage() {
         var outputStream = buildOutputStreamWithMessage(MessageIO.createErrorMessage("foo"));
-        var reader = new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()));
+        var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
-        var msg = MessageIO.readMessage(reader);
+        var msg = MessageIO.readMessage(inputStream);
         assertNotNull(msg);
         assertEquals(msg.getType(), Message.MessageType.ERROR);
         assertEquals(msg.getErrorMessage(), "foo");
@@ -34,9 +33,9 @@ class MessageIOTest {
     @Test
     public void testPlate() {
         var outputStream = buildOutputStreamWithMessage(MessageIO.createPlateMessage("plate-foo", 123));
-        var reader = new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()));
+        var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
-        var msg = MessageIO.readMessage(reader);
+        var msg = MessageIO.readMessage(inputStream);
         assertNotNull(msg);
         assertEquals(msg.getType(), Message.MessageType.PLATE);
         assertEquals(msg.getPlate(), "plate-foo");
@@ -46,18 +45,18 @@ class MessageIOTest {
     @Test
     public void testTicket() {
         var outputStream = buildOutputStreamWithMessage(
-                MessageIO.createTicketMessage("foo-123", 1, 2, 3, 100, 10, 30));
-        var reader = new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()));
+                MessageIO.createTicketMessage("UN1X", 66, 100, 123456, 110, 123816, 10000));
+        var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
-        var msg = MessageIO.readMessage(reader);
+        var msg = MessageIO.readMessage(inputStream);
         assertNotNull(msg);
         assertEquals(Message.MessageType.TICKET, msg.getType());
-        assertEquals("foo-123", msg.getPlate());
-        assertEquals(1, msg.getRoad());
-        assertEquals(2, msg.getMile1());
-        assertEquals(3, msg.getTimestamp1());
-        assertEquals(100, msg.getMile2());
-        assertEquals(10, msg.getTimestamp2());
-        assertEquals(30, msg.getSpeed());
+        assertEquals("UN1X", msg.getPlate());
+        assertEquals(66, msg.getRoad());
+        assertEquals(100, msg.getMile1());
+        assertEquals(123456, msg.getTimestamp1());
+        assertEquals(110, msg.getMile2());
+        assertEquals(123816, msg.getTimestamp2());
+        assertEquals(10000, msg.getSpeed());
     }
 }

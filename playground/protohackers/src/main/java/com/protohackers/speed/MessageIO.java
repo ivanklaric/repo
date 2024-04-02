@@ -1,61 +1,69 @@
 package com.protohackers.speed;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 
 public class MessageIO {
 
-    private static void writeU8(Writer writer, long u8) throws IOException {
-        writer.write((int) u8 & 0xFF);
+    private static long getNextUnsignedInt(InputStream inputStream) throws IOException {
+        int read = inputStream.read();
+        if (read < 0) {
+            throw new IOException("Couldn't read from reader.");
+        }
+        return Byte.toUnsignedLong((byte) (read & 0xff));
     }
 
-    private static void writeU16(Writer writer, long u16) throws IOException {
-        writer.write((int) u16 & 0xFF00);
-        writer.write((int) u16 & 0xFF);
+    private static void writeU8(OutputStream outputStream, long u8) throws IOException {
+        outputStream.write( Byte.toUnsignedInt( (byte)(u8 & 0xFF) ) );
+    }
+
+    private static void writeU16(OutputStream outputStream, long u16) throws IOException {
+        outputStream.write( Byte.toUnsignedInt((byte)((u16 & 0xFF00) >> 8)) );
+        outputStream.write( Byte.toUnsignedInt((byte)(u16 & 0xFF)) );
     }
 
 
-    private static void writeU32(Writer writer, long u32) throws IOException {
-        writer.write((int) u32 & 0xFF000000);
-        writer.write((int) u32 & 0x00FF0000);
-        writer.write((int) u32 & 0x0000FF00);
-        writer.write((int) u32 & 0x000000FF);
+    private static void writeU32(OutputStream outputStream, long u32) throws IOException {
+        outputStream.write(((int)u32 & 0xFF000000) >> 24);
+        outputStream.write(((int)u32 & 0xFF0000) >> 16);
+        outputStream.write(((int)u32 & 0xFF00) >> 8);
+        outputStream.write( (int)u32 & 0xFF);
     }
 
-    private static long readU32(Reader reader) throws IOException {
+    private static long readU32(InputStream inputStream) throws IOException {
         long ret = 0;
-        ret = ret | ((reader.read() & 0xFF) << 24);
-        ret = ret | ((reader.read() & 0xFF) << 16);
-        ret = ret | ((reader.read() & 0xFF) << 8);
-        ret = ret | (reader.read() & 0xFF);
+        ret |= getNextUnsignedInt(inputStream) << 24;
+        ret |= getNextUnsignedInt(inputStream) << 16;
+        ret |= getNextUnsignedInt(inputStream) << 8;
+        ret |= getNextUnsignedInt(inputStream);
         return ret;
     }
 
-    private static long readU16(Reader reader) throws IOException {
+    private static long readU16(InputStream inputStream) throws IOException {
         long ret = 0;
-        ret = ret | ((reader.read() & 0xFF) << 8);
-        ret = ret | (reader.read() & 0xFF);
+        ret |= (getNextUnsignedInt(inputStream) & 0xFF) << 8;
+        ret |= getNextUnsignedInt(inputStream) & 0xFF;
         return ret;
     }
 
-    private static long readU8(Reader reader) throws IOException {
-        return reader.read() & 0xFF;
+    private static long readU8(InputStream inputStream) throws IOException {
+        return getNextUnsignedInt(inputStream);
     }
 
 
-    private static void writeString(Writer writer, String str) throws IOException {
-        writer.write(str.length());
+    private static void writeString(OutputStream outputStream, String str) throws IOException {
+        outputStream.write(str.length());
         if (!str.isEmpty()) {
-            writer.write(str);
+            for (char c : str.toCharArray()) {
+                outputStream.write(c);
+            }
         }
     }
 
-    private static String readString(Reader reader) throws IOException {
-        int stringSize = reader.read();
+    private static String readString(InputStream inputStream) throws IOException {
+        long stringSize = getNextUnsignedInt(inputStream);
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < stringSize; i++) {
-            builder.append((char)reader.read());
+            builder.append((char)getNextUnsignedInt(inputStream));
         }
         return builder.toString();
     }
@@ -67,11 +75,11 @@ public class MessageIO {
         return ret;
     }
 
-    private static Message readErrorMessage(Reader reader) {
+    private static Message readErrorMessage(InputStream inputStream) {
         Message ret = new Message();
         ret.setType(Message.MessageType.ERROR);
         try {
-            ret.setErrorMessage(readString(reader));
+            ret.setErrorMessage(readString(inputStream));
         } catch (IOException e) {
             return null;
         }
@@ -87,36 +95,43 @@ public class MessageIO {
         return ret;
     }
 
-    private static Message readPlateMessage(Reader reader) {
+    private static Message readPlateMessage(InputStream inputStream) {
         Message ret = new Message();
         ret.setType(Message.MessageType.PLATE);
         try {
-            ret.setPlate(readString(reader));
-            ret.setTimestamp(readU32(reader));
+            ret.setPlate(readString(inputStream));
+            ret.setTimestamp(readU32(inputStream));
         } catch (IOException e) {
             return null;
         }
         return ret;
     }
 
+    private static String formatByteArray(byte[] array) {
+        var builder = new StringBuilder();
+        for (byte b : array) {
+            builder.append(String.format("%02X ", b));
+        }
+        return builder.toString();
+    }
 
-    public static void writeMessage(Writer writer, Message message) throws IOException {
-        writeU8(writer, message.getType().errorCode);
+    public static void writeMessage(OutputStream outputStream, Message message) throws IOException {
+        writeU8(outputStream, message.getType().errorCode);
         switch(message.getType()) {
             case Message.MessageType.ERROR ->
-                writeString(writer, message.getErrorMessage());
+                writeString(outputStream, message.getErrorMessage());
             case Message.MessageType.PLATE -> {
-                writeString(writer, message.getPlate());
-                writeU32(writer, message.getTimestamp());
+                writeString(outputStream, message.getPlate());
+                writeU32(outputStream, message.getTimestamp());
             }
             case Message.MessageType.TICKET -> {
-                writeString(writer, message.getPlate());
-                writeU16(writer, message.getRoad());
-                writeU16(writer, message.getMile1());
-                writeU32(writer, message.getTimestamp1());
-                writeU16(writer, message.getMile2());
-                writeU32(writer, message.getTimestamp2());
-                writeU16(writer, message.getSpeed());
+                writeString(outputStream, message.getPlate());
+                writeU16(outputStream, message.getRoad());
+                writeU16(outputStream, message.getMile1());
+                writeU32(outputStream, message.getTimestamp1());
+                writeU16(outputStream, message.getMile2());
+                writeU32(outputStream, message.getTimestamp2());
+                writeU16(outputStream, message.getSpeed());
             }
         }
     }
@@ -139,17 +154,17 @@ public class MessageIO {
         ret.setSpeed(speed);
         return ret;
     }
-    private static Message readTicketMessage(Reader reader) {
+    private static Message readTicketMessage(InputStream inputStream) {
         Message ret = new Message();
         ret.setType(Message.MessageType.TICKET);
         try {
-            ret.setPlate(readString(reader));
-            ret.setRoad(readU16(reader));
-            ret.setMile1(readU16(reader));
-            ret.setTimestamp1(readU32(reader));
-            ret.setMile2(readU16(reader));
-            ret.setTimestamp2(readU32(reader));
-            ret.setSpeed(readU16(reader));
+            ret.setPlate(readString(inputStream));
+            ret.setRoad(readU16(inputStream));
+            ret.setMile1(readU16(inputStream));
+            ret.setTimestamp1(readU32(inputStream));
+            ret.setMile2(readU16(inputStream));
+            ret.setTimestamp2(readU32(inputStream));
+            ret.setSpeed(readU16(inputStream));
         } catch (IOException e) {
             return null;
         }
@@ -157,10 +172,10 @@ public class MessageIO {
 
     }
 
-    public static Message readMessage(Reader reader) {
-        int msgType;
+    public static Message readMessage(InputStream inputStream) {
+        long msgType;
         try {
-            msgType = reader.read();
+            msgType = readU8(inputStream);
         } catch (IOException e) {
             System.out.println("Error when reading type: " + e);
             return null;
@@ -168,13 +183,13 @@ public class MessageIO {
         if (msgType == -1)
             return null;
 
-        switch (msgType) {
+        switch ((int)msgType) {
             case 0x10:
-                return readErrorMessage(reader);
+                return readErrorMessage(inputStream);
             case 0x20:
-                return readPlateMessage(reader);
+                return readPlateMessage(inputStream);
             case 0x21:
-                 return readTicketMessage(reader);
+                 return readTicketMessage(inputStream);
             case 0x40:
 //                ret.setType(Message.MessageType.WANT_HEARTBEAT);
             case 0x41:

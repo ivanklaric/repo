@@ -9,16 +9,16 @@ public class ServerThread extends Thread {
         this.clientSocket = socket;
     }
     public void run() {
-        Reader clientReader;
+        InputStream inputStream;
         try {
-            clientReader = new InputStreamReader(clientSocket.getInputStream());
+            inputStream = clientSocket.getInputStream();
         } catch (IOException e) {
             System.out.println("Can't open client Input stream: " + e);
             return;
         }
 
         while (true) {
-            var msg = MessageIO.readMessage(clientReader);
+            var msg = MessageIO.readMessage(inputStream);
             if (msg == null) {
                 break;
             }
