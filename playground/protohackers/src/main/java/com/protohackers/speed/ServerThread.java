@@ -15,6 +15,8 @@ public class ServerThread extends Thread {
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
     private boolean wantHeartbeat = false;
     private long heartbeatInterval;
+    Object syncObj = new Object();
+
 
     private synchronized void addCamera(Message msg) {
         if (msg.getType() != Message.MessageType.I_AM_CAMERA) return;
@@ -36,6 +38,13 @@ public class ServerThread extends Thread {
     public ServerThread(Socket socket) {
         this.clientSocket = socket;
     }
+
+    private void writeToClient(OutputStream outputStream, Message msg) throws IOException {
+        synchronized (syncObj) {
+
+        }
+    }
+
     public void run() {
         InputStream inputStream;
         try {
@@ -57,7 +66,7 @@ public class ServerThread extends Thread {
             if (!MessageValidator.isClientMessageValid(msg, threadMode, wantHeartbeat)) {
                 System.out.println("Read unexpected message, sending error and closing");
                 try {
-                    MessageIO.writeMessage(outputStream, MessageIO.createErrorMessage("Invalid message sent"));
+                    writeToClient(outputStream, MessageIO.createErrorMessage("Invalid message sent"));
                 } catch (IOException e) {
                     System.out.println("Error writing message to output stream: " + e);
                     break;
@@ -78,7 +87,7 @@ public class ServerThread extends Thread {
                                     break;
                                 }
                                 try {
-                                    MessageIO.writeMessage(outputStream, MessageIO.createHeartBeatMessage());
+                                    writeToClient(outputStream, MessageIO.createHeartBeatMessage());
                                 } catch (IOException e) {
                                     break;
                                 }
