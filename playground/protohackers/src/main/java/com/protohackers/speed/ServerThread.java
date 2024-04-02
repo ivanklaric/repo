@@ -2,14 +2,13 @@ package com.protohackers.speed;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Date;
 
 public class ServerThread extends Thread {
     public enum ThreadMode {
         UNKNOWN, CAMERA, DISPATCHER
     }
     private final Socket clientSocket;
-    private ThreadMode threadMode;
+    private ThreadMode threadMode = ThreadMode.UNKNOWN;
     private boolean wantHeartbeat = false;
     private long heartbeatInterval;
     private long nextHeartbeat;
@@ -46,13 +45,6 @@ public class ServerThread extends Thread {
                 break;
             }
 
-            try {
-                checkHeartbeat(outputStream);
-            } catch (IOException e) {
-                System.out.println("Error sending heartbeat message: " + e);
-                break;
-            }
-
             switch(msg.getType()) {
                 case Message.MessageType.WANT_HEARTBEAT -> {
                     if (msg.getInterval() > 0) {
@@ -75,22 +67,16 @@ public class ServerThread extends Thread {
                         t.start();
                     }
                 }
-            }
+                case Message.MessageType.I_AM_CAMERA -> {
+                    threadMode = ThreadMode.CAMERA;
 
-            if (msg.getType() == Message.MessageType.WANT_HEARTBEAT) {
+                }
             }
         }
         try {
             clientSocket.close();
         } catch (IOException e) {
             System.out.println("Error closing the socket: "+ e);
-        }
-    }
-
-    public void checkHeartbeat(OutputStream outputStream) throws IOException {
-        if (System.currentTimeMillis() >= nextHeartbeat) {
-            MessageIO.writeMessage(outputStream, MessageIO.createHeartBeatMessage());
-            nextHeartbeat = System.currentTimeMillis() + Math.round((float) heartbeatInterval / 10);
         }
     }
 }
