@@ -2,16 +2,38 @@ package com.protohackers.speed;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServerThread extends Thread {
     public enum ThreadMode {
         UNKNOWN, CAMERA, DISPATCHER
     }
+    private static final List<Message> cameras = new ArrayList<>();
+    private static final List<Message> dispatchers = new ArrayList<>();
+    private static final List<Message> carObservations = new ArrayList<>();
+
     private final Socket clientSocket;
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
     private boolean wantHeartbeat = false;
     private long heartbeatInterval;
-    private long nextHeartbeat;
+
+    private synchronized void addCamera(Message msg) {
+        if (msg.getType() != Message.MessageType.I_AM_CAMERA) return;
+        cameras.add(msg);
+    }
+
+    private synchronized void addDispatcher(Message msg) {
+        if (msg.getType() != Message.MessageType.I_AM_DISPATCHER) return;
+        dispatchers.add(msg);
+        // todo update some probably useful road: dispatcher mappings
+    }
+
+    private synchronized void addCarObservation(Message msg) {
+        if (msg.getType() != Message.MessageType.PLATE) return;
+        carObservations.add(msg);
+        // todo update some probably useful mappings
+    }
 
     public ServerThread(Socket socket) {
         this.clientSocket = socket;
@@ -69,8 +91,14 @@ public class ServerThread extends Thread {
                 }
                 case Message.MessageType.I_AM_CAMERA -> {
                     threadMode = ThreadMode.CAMERA;
-
+                    addCamera(msg);
                 }
+                case Message.MessageType.I_AM_DISPATCHER -> {
+                    threadMode = ThreadMode.DISPATCHER;
+                    addDispatcher(msg);
+                }
+                case Message.MessageType.PLATE ->
+                    addCarObservation(msg);
             }
         }
         try {
