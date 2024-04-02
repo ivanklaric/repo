@@ -24,7 +24,7 @@ public class Message {
     private String plate;
     private long timestamp;
     private long road;
-    private long mile1, miles;
+    private long mile1, mile2;
     private long timestamp1, timestamp2;
     private long speed;
     private long interval;
@@ -80,12 +80,12 @@ public class Message {
         this.mile1 = mile1;
     }
 
-    public long getMiles() {
-        return miles;
+    public long getMile2() {
+        return mile2;
     }
 
-    public void setMiles(long miles) {
-        this.miles = miles;
+    public void setMile2(long mile) {
+        this.mile2 = mile;
     }
 
     public long getTimestamp1() {

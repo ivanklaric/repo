@@ -43,4 +43,21 @@ class MessageIOTest {
         assertEquals(msg.getTimestamp(), 123);
     }
 
+    @Test
+    public void testTicket() {
+        var outputStream = buildOutputStreamWithMessage(
+                MessageIO.createTicketMessage("foo-123", 1, 2, 3, 100, 10, 30));
+        var reader = new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()));
+
+        var msg = MessageIO.readMessage(reader);
+        assertNotNull(msg);
+        assertEquals(Message.MessageType.TICKET, msg.getType());
+        assertEquals("foo-123", msg.getPlate());
+        assertEquals(1, msg.getRoad());
+        assertEquals(2, msg.getMile1());
+        assertEquals(3, msg.getTimestamp1());
+        assertEquals(100, msg.getMile2());
+        assertEquals(10, msg.getTimestamp2());
+        assertEquals(30, msg.getSpeed());
+    }
 }
