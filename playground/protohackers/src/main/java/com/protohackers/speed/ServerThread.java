@@ -15,7 +15,7 @@ public class ServerThread extends Thread {
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
     private boolean wantHeartbeat = false;
     private long heartbeatInterval;
-    Object syncObj = new Object();
+    final Object syncObj = new Object();
 
 
     private synchronized void addCamera(Message msg) {
@@ -41,7 +41,7 @@ public class ServerThread extends Thread {
 
     private void writeToClient(OutputStream outputStream, Message msg) throws IOException {
         synchronized (syncObj) {
-
+            MessageIO.writeMessage(outputStream, msg);
         }
     }
 
