@@ -2,16 +2,14 @@ package com.protohackers.speed;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ServerThread extends Thread {
     public enum ThreadMode {
         UNKNOWN, CAMERA, DISPATCHER
     }
-    private static final List<Message> cameras = new ArrayList<>();
-    private static final List<Message> dispatchers = new ArrayList<>();
-    private static final List<Message> carObservations = new ArrayList<>();
+    private static final CarObservatory carObservatory = new CarObservatory();
+    private Message cameraContext = null;
+    private Message dispatcherContext = null;
 
     private final Socket clientSocket;
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
@@ -20,19 +18,19 @@ public class ServerThread extends Thread {
 
     private synchronized void addCamera(Message msg) {
         if (msg.getType() != Message.MessageType.I_AM_CAMERA) return;
-        cameras.add(msg);
+        cameraContext = msg;
     }
 
     private synchronized void addDispatcher(Message msg) {
         if (msg.getType() != Message.MessageType.I_AM_DISPATCHER) return;
-        dispatchers.add(msg);
+        dispatcherContext = msg;
         // todo update some probably useful road: dispatcher mappings
     }
 
     private synchronized void addCarObservation(Message msg) {
-        if (msg.getType() != Message.MessageType.PLATE) return;
-        carObservations.add(msg);
-        // todo update some probably useful mappings
+        if (msg.getType() != Message.MessageType.PLATE || cameraContext == null) return;
+        carObservatory.addCarSighting(msg.getPlate(), msg.getTimestamp(),
+                cameraContext.getRoad(), cameraContext.getMile(), cameraContext.getLimit());
     }
 
     public ServerThread(Socket socket) {

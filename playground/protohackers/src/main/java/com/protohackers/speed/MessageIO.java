@@ -119,34 +119,34 @@ public class MessageIO {
     }
 
     public static void writeMessage(OutputStream outputStream, Message message) throws IOException {
-        writeU8(outputStream, message.getType().typeCode);
-        switch(message.getType()) {
-            case Message.MessageType.ERROR ->
-                writeString(outputStream, message.getErrorMessage());
-            case Message.MessageType.PLATE -> {
-                writeString(outputStream, message.getPlate());
-                writeU32(outputStream, message.getTimestamp());
-            }
-            case Message.MessageType.TICKET -> {
-                writeString(outputStream, message.getPlate());
-                writeU16(outputStream, message.getRoad());
-                writeU16(outputStream, message.getMile1());
-                writeU32(outputStream, message.getTimestamp1());
-                writeU16(outputStream, message.getMile2());
-                writeU32(outputStream, message.getTimestamp2());
-                writeU16(outputStream, message.getSpeed());
-            }
-            case Message.MessageType.WANT_HEARTBEAT ->
-                writeU32(outputStream, message.getInterval());
-            case Message.MessageType.I_AM_CAMERA -> {
-                writeU16(outputStream, message.getRoad());
-                writeU16(outputStream, message.getMile());
-                writeU16(outputStream, message.getLimit());
-            }
-            case Message.MessageType.I_AM_DISPATCHER -> {
-                writeU8(outputStream, message.getDispatcherRoads().size());
-                for (Long road : message.getDispatcherRoads()) {
-                    writeU16(outputStream, road);
+        synchronized (outputStream) {
+            writeU8(outputStream, message.getType().typeCode);
+            switch (message.getType()) {
+                case Message.MessageType.ERROR -> writeString(outputStream, message.getErrorMessage());
+                case Message.MessageType.PLATE -> {
+                    writeString(outputStream, message.getPlate());
+                    writeU32(outputStream, message.getTimestamp());
+                }
+                case Message.MessageType.TICKET -> {
+                    writeString(outputStream, message.getPlate());
+                    writeU16(outputStream, message.getRoad());
+                    writeU16(outputStream, message.getMile1());
+                    writeU32(outputStream, message.getTimestamp1());
+                    writeU16(outputStream, message.getMile2());
+                    writeU32(outputStream, message.getTimestamp2());
+                    writeU16(outputStream, message.getSpeed());
+                }
+                case Message.MessageType.WANT_HEARTBEAT -> writeU32(outputStream, message.getInterval());
+                case Message.MessageType.I_AM_CAMERA -> {
+                    writeU16(outputStream, message.getRoad());
+                    writeU16(outputStream, message.getMile());
+                    writeU16(outputStream, message.getLimit());
+                }
+                case Message.MessageType.I_AM_DISPATCHER -> {
+                    writeU8(outputStream, message.getDispatcherRoads().size());
+                    for (Long road : message.getDispatcherRoads()) {
+                        writeU16(outputStream, road);
+                    }
                 }
             }
         }
