@@ -22,8 +22,7 @@ public class ServerThread extends Thread {
     private final Socket clientSocket;
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
     private boolean wantHeartbeat = false;
-    private long heartbeatInterval;
-    final Object syncObj = new Object();
+    final Object outputStreamSyncObj = new Object();
 
 
     private synchronized void addCamera(Message msg) {
@@ -41,11 +40,7 @@ public class ServerThread extends Thread {
         }
     }
 
-    private synchronized void addCarObservation(Message msg) {
-        if (msg.getType() != Message.MessageType.PLATE || cameraContext == null) return;
-        carObservatory.addCarSighting(msg.getPlate(), msg.getTimestamp(),
-                cameraContext.getRoad(), cameraContext.getMile(), cameraContext.getLimit());
-        var ticketsToIssue = carObservatory.issueTickets();
+    private synchronized void dispatchTickets(List<Message> ticketsToIssue) {
         for (var ticket : ticketsToIssue) {
             try {
                 dispatcherSemaphores.get(ticket.getRoad()).acquire();
@@ -59,29 +54,31 @@ public class ServerThread extends Thread {
         }
     }
 
+    private synchronized void addCarObservation(Message msg) {
+        if (msg.getType() != Message.MessageType.PLATE || cameraContext == null) return;
+        carObservatory.addCarSighting(msg.getPlate(), msg.getTimestamp(),
+                cameraContext.getRoad(), cameraContext.getMile(), cameraContext.getLimit());
+    }
+
     public ServerThread(Socket socket) {
         this.clientSocket = socket;
     }
 
     private void writeToClient(OutputStream outputStream, Message msg) throws IOException {
-        synchronized (syncObj) {
+        synchronized (outputStreamSyncObj) {
             MessageIO.writeMessage(outputStream, msg);
         }
     }
 
     public void run() {
         InputStream inputStream;
+        OutputStream outputStream;
+
         try {
             inputStream = clientSocket.getInputStream();
-        } catch (IOException e) {
-            System.out.println("Can't open client Input stream: " + e);
-            return;
-        }
-        OutputStream outputStream;
-        try {
             outputStream = clientSocket.getOutputStream();
         } catch (IOException e) {
-            System.out.println("Can't open client Output stream: " + e);
+            System.out.println("Can't open client s: " + e);
             return;
         }
 
@@ -100,65 +97,81 @@ public class ServerThread extends Thread {
 
             switch(msg.getType()) {
                 case Message.MessageType.WANT_HEARTBEAT -> {
+                    System.out.println("Got WANT_HEARTBEAT msg");
                     if (msg.getInterval() > 0) {
                         wantHeartbeat = true;
-                        heartbeatInterval = msg.getInterval();
-                        Thread t = new Thread(() -> {
-                            while (true) {
-                                try {
-                                    Thread.sleep(heartbeatInterval * 100);
-                                } catch (InterruptedException e) {
-                                    break;
-                                }
-                                try {
-                                    writeToClient(outputStream, MessageIO.createHeartBeatMessage());
-                                } catch (IOException e) {
-                                    break;
-                                }
-                            }
-                        });
-                        t.start();
+                        runHeartbeatThread(msg, outputStream);
                     }
                 }
                 case Message.MessageType.I_AM_CAMERA -> {
+                    System.out.println("Got I_AM_CAMERA msg, camera context: road:" + msg.getRoad() +
+                            ", mile:" + msg.getMile() + ", limit:" + msg.getLimit());
                     threadMode = ThreadMode.CAMERA;
                     addCamera(msg);
                 }
                 case Message.MessageType.I_AM_DISPATCHER -> {
+                    System.out.println("Got I_AM_DISPATCHER msg");
                     threadMode = ThreadMode.DISPATCHER;
                     addDispatcher(msg);
-                    for (var road : dispatcherContext.getDispatcherRoads()) {
-                        Thread.ofVirtual().start( () -> {
-                            while (true) {
-                                try {
-                                    dispatcherSemaphores.get(road).acquire();
-                                    if (ticketsToDispatch.containsKey(road)) {
-                                        for (Message ticket : ticketsToDispatch.get(road)) {
-                                            try {
-                                                writeToClient(outputStream, ticket);
-                                            } catch (IOException e) {
-                                                return;
-                                            }
-                                        }
-                                    }
-                                    ticketsToDispatch.get(road).clear();
-                                } catch (InterruptedException e) {
-                                    return;
-                                } finally {
-                                    dispatcherSemaphores.get(road).release();
-                                }
-                            }
-                        });
-                    }
+                    runDispatcherThreads(outputStream);
                 }
-                case Message.MessageType.PLATE ->
+                case Message.MessageType.PLATE -> {
+                    System.out.println("Got PLATE msg:" + msg.getPlate() + ", timestamp: " + msg.getTimestamp()
+                    +", camera context: road:" + cameraContext.getRoad() + " mile:" + cameraContext.getMile());
                     addCarObservation(msg);
+                    dispatchTickets(carObservatory.issueTickets());
+                }
             }
         }
+
         try {
             clientSocket.close();
         } catch (IOException e) {
             System.out.println("Error closing the socket: "+ e);
         }
+    }
+
+    private void runDispatcherThreads(OutputStream outputStream) {
+        for (var road : dispatcherContext.getDispatcherRoads()) {
+            Thread.ofVirtual().start( () -> {
+                while (true) {
+                    try {
+                        dispatcherSemaphores.get(road).acquire();
+                        if (ticketsToDispatch.containsKey(road)) {
+                            for (Message ticket : ticketsToDispatch.get(road)) {
+                                try {
+                                    writeToClient(outputStream, ticket);
+                                } catch (IOException e) {
+                                    return;
+                                }
+                            }
+                        }
+                        ticketsToDispatch.get(road).clear();
+                    } catch (InterruptedException e) {
+                        return;
+                    } finally {
+                        dispatcherSemaphores.get(road).release();
+                    }
+                }
+            });
+        }
+    }
+
+    private void runHeartbeatThread(Message msg, OutputStream outputStream) {
+        var heartbeatInterval = msg.getInterval();
+        Thread.ofVirtual().start( () -> {
+            while (true) {
+                try {
+                    Thread.sleep(heartbeatInterval * 100);
+                } catch (InterruptedException e) {
+                    break;
+                }
+                try {
+                    writeToClient(outputStream, MessageIO.createHeartBeatMessage());
+                } catch (IOException e) {
+                    break;
+                }
+            }
+        });
     }
 }
