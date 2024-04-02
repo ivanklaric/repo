@@ -14,6 +14,9 @@ public class MessageIO {
         writer.write((int) u32);
     }
 
+    private static long readU32(Reader reader) throws IOException {
+        return (long) reader.read();
+    }
 
     private static void writeString(Writer writer, String str) throws IOException {
         writer.write(str.length());
@@ -38,6 +41,39 @@ public class MessageIO {
         return ret;
     }
 
+    private static Message readErrorMessage(Reader reader) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.ERROR);
+        try {
+            ret.setErrorMessage(readString(reader));
+        } catch (IOException e) {
+            return null;
+        }
+        return ret;
+    }
+
+
+    public static Message createPlateMessage(String plate, long timestamp) {
+        var ret = new Message();
+        ret.setType(Message.MessageType.PLATE);
+        ret.setPlate(plate);
+        ret.setTimestamp(timestamp);
+        return ret;
+    }
+
+    private static Message readPlateMessage(Reader reader) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.PLATE);
+        try {
+            ret.setPlate(readString(reader));
+            ret.setTimestamp(readU32(reader));
+        } catch (IOException e) {
+            return null;
+        }
+        return ret;
+    }
+
+
     public static void writeMessage(Writer writer, Message message) throws IOException {
         writeU8(writer, message.getType().errorCode);
         switch(message.getType()) {
@@ -61,37 +97,22 @@ public class MessageIO {
         if (msgType == -1)
             return null;
 
-        Message ret = new Message();
         switch (msgType) {
             case 0x10:
-                ret.setType(Message.MessageType.ERROR);
-                try {
-                    ret.setErrorMessage(readString(reader));
-                } catch (IOException e) {
-                    return null;
-                }
-                break;
+                return readErrorMessage(reader);
             case 0x20:
-                ret.setType(Message.MessageType.PLATE);
-                break;
+                return readPlateMessage(reader);
             case 0x21:
-                ret.setType(Message.MessageType.TICKET);
-                break;
+//                 ret.setType(Message.MessageType.TICKET);
             case 0x40:
-                ret.setType(Message.MessageType.WANT_HEARTBEAT);
-                break;
+//                ret.setType(Message.MessageType.WANT_HEARTBEAT);
             case 0x41:
-                ret.setType(Message.MessageType.HEARTBEAT);
-                break;
+//                ret.setType(Message.MessageType.HEARTBEAT);
             case 0x80:
-                ret.setType(Message.MessageType.I_AM_CAMERA);
-                break;
+//                ret.setType(Message.MessageType.I_AM_CAMERA);
             case 0x81:
-                ret.setType(Message.MessageType.I_AM_DISPATCHER);
-                break;
-            default:
-                return null; // invalid message
+//                ret.setType(Message.MessageType.I_AM_DISPATCHER);
         }
-        return ret;
+        return null;
     }
 }
