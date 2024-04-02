@@ -26,8 +26,8 @@ class MessageIOTest {
 
         var msg = MessageIO.readMessage(inputStream);
         assertNotNull(msg);
-        assertEquals(msg.getType(), Message.MessageType.ERROR);
-        assertEquals(msg.getErrorMessage(), "foo");
+        assertEquals(Message.MessageType.ERROR, msg.getType());
+        assertEquals("foo", msg.getErrorMessage());
     }
 
     @Test
@@ -37,9 +37,9 @@ class MessageIOTest {
 
         var msg = MessageIO.readMessage(inputStream);
         assertNotNull(msg);
-        assertEquals(msg.getType(), Message.MessageType.PLATE);
-        assertEquals(msg.getPlate(), "plate-foo");
-        assertEquals(msg.getTimestamp(), 123);
+        assertEquals(Message.MessageType.PLATE, msg.getType());
+        assertEquals("plate-foo", msg.getPlate());
+        assertEquals(123, msg.getTimestamp());
     }
 
     @Test
@@ -59,4 +59,54 @@ class MessageIOTest {
         assertEquals(123816, msg.getTimestamp2());
         assertEquals(10000, msg.getSpeed());
     }
+
+    @Test
+    public void testWantHeartbeat() {
+        var outputStream = buildOutputStreamWithMessage( MessageIO.createWantHeartBeatMessage(100) );
+        var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        var msg = MessageIO.readMessage(inputStream);
+        assertNotNull(msg);
+        assertEquals(Message.MessageType.WANT_HEARTBEAT, msg.getType());
+        assertEquals(100, msg.getInterval());
+    }
+
+    @Test
+    public void testHeartbeat() {
+        var outputStream = buildOutputStreamWithMessage( MessageIO.createHeartBeatMessage() );
+        var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        var msg = MessageIO.readMessage(inputStream);
+        assertNotNull(msg);
+        assertEquals(Message.MessageType.HEARTBEAT, msg.getType());
+    }
+
+    @Test
+    public void testIAmCamera() {
+        var outputStream = buildOutputStreamWithMessage(
+                MessageIO.createIAmCameraMessage(100, 200, 250));
+        var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        var msg = MessageIO.readMessage(inputStream);
+        assertNotNull(msg);
+        assertEquals(Message.MessageType.I_AM_CAMERA, msg.getType());
+        assertEquals(100, msg.getRoad());
+        assertEquals(200, msg.getMile());
+        assertEquals(250, msg.getLimit());
+    }
+
+    @Test
+    public void testIAmDispatcher() {
+        var outputStream = buildOutputStreamWithMessage(
+                MessageIO.createIAmDispatcherMessage(new long[] {101, 66, 200, 300, 10000, 25000, 30000}));
+        var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        var msg = MessageIO.readMessage(inputStream);
+        assertNotNull(msg);
+        assertEquals(Message.MessageType.I_AM_DISPATCHER, msg.getType());
+        assertNotNull(msg.getDispatcherRoads());
+        assertEquals(7, msg.getDispatcherRoads().size());
+        assertEquals(101, msg.getDispatcherRoads().get(0));
+        assertEquals(66, msg.getDispatcherRoads().get(1));
+        assertEquals(200, msg.getDispatcherRoads().get(2));
+        assertEquals(300, msg.getDispatcherRoads().get(3));
+        assertEquals(30000, msg.getDispatcherRoads().get(6));
+    }
+
 }

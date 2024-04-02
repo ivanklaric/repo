@@ -13,9 +13,9 @@ public class Message {
         I_AM_DISPATCHER((char)0x81);
 
 
-        public final char errorCode;
-        MessageType(char errorCode) {
-            this.errorCode = errorCode;
+        public final char typeCode;
+        MessageType(char typeCode) {
+            this.typeCode = typeCode;
         }
     }
 
@@ -30,7 +30,7 @@ public class Message {
     private long interval;
     private long mile;
     private long limit;
-    private List<Character> dispatcherRoads;
+    private List<Long> dispatcherRoads;
 
     public MessageType getType() {
         return type;
@@ -136,11 +136,11 @@ public class Message {
         this.limit = limit;
     }
 
-    public List<Character> getDispatcherRoads() {
+    public List<Long> getDispatcherRoads() {
         return dispatcherRoads;
     }
 
-    public void setDispatcherRoads(List<Character> dispatcherRoads) {
+    public void setDispatcherRoads(List<Long> dispatcherRoads) {
         this.dispatcherRoads = dispatcherRoads;
     }
 }

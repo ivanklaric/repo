@@ -1,6 +1,10 @@
 package com.protohackers.speed;
 
 import java.io.*;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MessageIO {
 
@@ -116,7 +120,7 @@ public class MessageIO {
     }
 
     public static void writeMessage(OutputStream outputStream, Message message) throws IOException {
-        writeU8(outputStream, message.getType().errorCode);
+        writeU8(outputStream, message.getType().typeCode);
         switch(message.getType()) {
             case Message.MessageType.ERROR ->
                 writeString(outputStream, message.getErrorMessage());
@@ -133,8 +137,67 @@ public class MessageIO {
                 writeU32(outputStream, message.getTimestamp2());
                 writeU16(outputStream, message.getSpeed());
             }
+            case Message.MessageType.WANT_HEARTBEAT ->
+                writeU32(outputStream, message.getInterval());
+            case Message.MessageType.I_AM_CAMERA -> {
+                writeU16(outputStream, message.getRoad());
+                writeU16(outputStream, message.getMile());
+                writeU16(outputStream, message.getLimit());
+            }
+            case Message.MessageType.I_AM_DISPATCHER -> {
+                writeU8(outputStream, message.getDispatcherRoads().size());
+                for (Long road : message.getDispatcherRoads()) {
+                    writeU16(outputStream, road);
+                }
+            }
         }
     }
+
+    public static Message createIAmCameraMessage(long road, long mile, long limit) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.I_AM_CAMERA);
+        ret.setRoad(road);
+        ret.setMile(mile);
+        ret.setLimit(limit);
+        return ret;
+    }
+
+    public static Message readIAmCameraMessage(InputStream inputStream) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.I_AM_CAMERA);
+        try {
+            ret.setRoad(readU16(inputStream));
+            ret.setMile(readU16(inputStream));
+            ret.setLimit(readU16(inputStream));
+        } catch (IOException e) {
+            return null;
+        }
+        return ret;
+    }
+
+    public static Message createIAmDispatcherMessage(long[] roadsArray) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.I_AM_DISPATCHER);
+        ret.setDispatcherRoads(Arrays.stream(roadsArray).boxed().toList());
+        return ret;
+    }
+
+    public static Message readIAmDispatcherMessage(InputStream inputStream) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.I_AM_DISPATCHER);
+        try {
+            long numRoads = readU8(inputStream);
+            List<Long> roadsList = new ArrayList<>();
+            for (long i = 0; i < numRoads; i++) {
+                roadsList.add(readU16(inputStream));
+            }
+            ret.setDispatcherRoads(roadsList);
+        } catch (IOException e) {
+            return null;
+        }
+        return ret;
+    }
+
 
     public static Message createTicketMessage(String plate,
                                                long road,
@@ -169,7 +232,30 @@ public class MessageIO {
             return null;
         }
         return ret;
+    }
 
+    public static Message createWantHeartBeatMessage(long interval) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.WANT_HEARTBEAT);
+        ret.setInterval(interval);
+        return ret;
+    }
+
+    private static Message readWantHeartbeatMessage(InputStream inputStream) {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.WANT_HEARTBEAT);
+        try {
+            ret.setInterval(readU32(inputStream));
+        } catch (IOException e) {
+            return null;
+        }
+        return ret;
+    }
+
+    public static Message createHeartBeatMessage() {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.HEARTBEAT);
+        return ret;
     }
 
     public static Message readMessage(InputStream inputStream) {
@@ -189,15 +275,15 @@ public class MessageIO {
             case 0x20:
                 return readPlateMessage(inputStream);
             case 0x21:
-                 return readTicketMessage(inputStream);
+                return readTicketMessage(inputStream);
             case 0x40:
-//                ret.setType(Message.MessageType.WANT_HEARTBEAT);
+                return readWantHeartbeatMessage(inputStream);
             case 0x41:
-//                ret.setType(Message.MessageType.HEARTBEAT);
+                return createHeartBeatMessage();
             case 0x80:
-//                ret.setType(Message.MessageType.I_AM_CAMERA);
+                return readIAmCameraMessage(inputStream);
             case 0x81:
-//                ret.setType(Message.MessageType.I_AM_DISPATCHER);
+                return readIAmDispatcherMessage(inputStream);
         }
         return null;
     }
