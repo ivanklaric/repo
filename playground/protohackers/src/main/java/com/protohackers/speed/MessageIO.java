@@ -1,7 +1,6 @@
 package com.protohackers.speed;
 
 import java.io.*;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -269,22 +268,15 @@ public class MessageIO {
         if (msgType == -1)
             return null;
 
-        switch ((int)msgType) {
-            case 0x10:
-                return readErrorMessage(inputStream);
-            case 0x20:
-                return readPlateMessage(inputStream);
-            case 0x21:
-                return readTicketMessage(inputStream);
-            case 0x40:
-                return readWantHeartbeatMessage(inputStream);
-            case 0x41:
-                return createHeartBeatMessage();
-            case 0x80:
-                return readIAmCameraMessage(inputStream);
-            case 0x81:
-                return readIAmDispatcherMessage(inputStream);
-        }
-        return null;
+        return switch ((int) msgType) {
+            case 0x10 -> readErrorMessage(inputStream);
+            case 0x20 -> readPlateMessage(inputStream);
+            case 0x21 -> readTicketMessage(inputStream);
+            case 0x40 -> readWantHeartbeatMessage(inputStream);
+            case 0x41 -> createHeartBeatMessage();
+            case 0x80 -> readIAmCameraMessage(inputStream);
+            case 0x81 -> readIAmDispatcherMessage(inputStream);
+            default -> null;
+        };
     }
 }
