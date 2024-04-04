@@ -1,7 +1,6 @@
 package com.protohackers.speed;
 
 import java.io.*;
-import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +8,7 @@ import java.util.List;
 
 public class MessageIO {
 
-    private static long getNextUnsignedInt(InputStream inputStream) throws IOException, SocketTimeoutException {
+    private static long getNextUnsignedInt(InputStream inputStream) throws IOException {
         int read = inputStream.read();
         if (read < 0) {
             throw new IOException("Couldn't read from inputStream.");

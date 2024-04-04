@@ -93,6 +93,7 @@ public class SingleClientTests {
             synchronized (syncObj) {
                 responseReceived = true;
             }
+            client.close();
         });
         clientThread.start();
         return clientThread;

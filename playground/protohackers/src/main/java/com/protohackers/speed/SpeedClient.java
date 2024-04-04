@@ -14,7 +14,7 @@ public class SpeedClient {
 
 
     public SpeedClient(String hostname, int port) {
-        InetAddress host = null;
+        InetAddress host;
         socket = null;
         try {
             host = InetAddress.getByName(hostname);
@@ -58,9 +58,5 @@ public class SpeedClient {
             inputStream = null;
             outputStream = null;
         }
-    }
-
-    public boolean isReady() {
-        return (socket != null && inputStream != null && outputStream != null);
     }
 }
