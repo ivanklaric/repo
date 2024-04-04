@@ -92,7 +92,7 @@ public class ServerThread extends Thread {
             if (shouldDie) {
                 break;
             }
-            Message msg = null;
+            Message msg;
             try {
                 msg = MessageIO.readMessage(inputStream);
             } catch (SocketTimeoutException ste) {
