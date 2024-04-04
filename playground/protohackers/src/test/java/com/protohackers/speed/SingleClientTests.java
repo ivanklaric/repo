@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,10 +19,10 @@ public class SingleClientTests {
     public void TestHeartbeat() {
         Object syncObj = new Object();
 
+        var messages = new ArrayList<Message>();
+        messages.add(MessageIO.createWantHeartBeatMessage(10));
         Thread serverThread = runServerThread();
-        Thread clientThread = runClientThread(syncObj,
-                MessageIO.createWantHeartBeatMessage(10),
-                MessageIO.createHeartBeatMessage());
+        Thread clientThread = runClientThread(syncObj, messages, MessageIO.createHeartBeatMessage());
         Thread timeoutThread = runTimeoutThread(syncObj);
 
         joinThreadsAndCheckResponse(timeoutThread, clientThread, serverThread);
@@ -30,10 +32,24 @@ public class SingleClientTests {
     public void TestInvalidMessage() {
         Object syncObj = new Object();
 
+        var messages = new ArrayList<Message>();
+        messages.add(MessageIO.createInvalidMessage());
         Thread serverThread = runServerThread();
-        Thread clientThread = runClientThread(syncObj,
-                MessageIO.createInvalidMessage(),
-                MessageIO.createErrorMessage("Invalid message sent"));
+        Thread clientThread = runClientThread(syncObj, messages, MessageIO.createErrorMessage("Invalid message sent"));
+        Thread timeoutThread = runTimeoutThread(syncObj);
+
+        joinThreadsAndCheckResponse(timeoutThread, clientThread, serverThread);
+    }
+
+    @Test
+    public void TestCantChangeClientType() {
+        Object syncObj = new Object();
+
+        var messages = new ArrayList<Message>();
+        messages.add(MessageIO.createIAmCameraMessage(10, 10, 10));
+        messages.add(MessageIO.createIAmDispatcherMessage(new long[] {10}));
+        Thread serverThread = runServerThread();
+        Thread clientThread = runClientThread(syncObj, messages, MessageIO.createErrorMessage("Invalid message sent"));
         Thread timeoutThread = runTimeoutThread(syncObj);
 
         joinThreadsAndCheckResponse(timeoutThread, clientThread, serverThread);
@@ -72,14 +88,16 @@ public class SingleClientTests {
         return timeoutThread;
     }
 
-    private Thread runClientThread(Object syncObj, Message msgToSend, Message msgToExpect) {
+    private Thread runClientThread(Object syncObj, List<Message> msgsToSend, Message msgToExpect) {
         Thread clientThread = new Thread(() -> {
             SpeedClient client = new SpeedClient("localhost", 9003);
             try {
-                System.out.println("Client is sending the want_heartbeat message");
-                client.sendMessage(msgToSend);
+                for (Message msgToSend : msgsToSend) {
+                    System.out.println("Client is sending the " + msgToSend.getType() + " message");
+                    client.sendMessage(msgToSend);
+                }
             } catch (IOException e) {
-                fail("Failed sending WANT_HEARTBEAT_MESSAGE: " +e);
+                fail("Failed sending message: " +e);
             }
             Message msg = null;
             try {

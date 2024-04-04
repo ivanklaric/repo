@@ -156,11 +156,11 @@ public class ServerThread extends Thread {
                                 try {
                                     writeToClient(outputStream, ticket);
                                 } catch (IOException e) {
-                                    return;
+                                    return; // TODO see about this
                                 }
                             }
+                            ticketsToDispatch.get(road).clear();
                         }
-                        ticketsToDispatch.get(road).clear();
                     } catch (InterruptedException e) {
                         return;
                     } finally {
