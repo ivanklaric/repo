@@ -1,16 +1,18 @@
 package com.protohackers.speed;
 
 import java.io.*;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class MessageIO {
 
-    private static long getNextUnsignedInt(InputStream inputStream) throws IOException {
+    private static long getNextUnsignedInt(InputStream inputStream) throws IOException, SocketTimeoutException {
         int read = inputStream.read();
         if (read < 0) {
-            throw new IOException("Couldn't read from reader.");
+            throw new IOException("Couldn't read from inputStream.");
         }
         return Byte.toUnsignedLong((byte) (read & 0xff));
     }
@@ -255,11 +257,21 @@ public class MessageIO {
         return ret;
     }
 
-    public static Message readMessage(InputStream inputStream) {
+    public static Message createInvalidMessage() {
+        Message ret = new Message();
+        ret.setType(Message.MessageType.INVALID);
+        return ret;
+    }
+
+
+    public static Message readMessage(InputStream inputStream) throws SocketTimeoutException {
         long msgType;
         try {
             msgType = readU8(inputStream);
         } catch (IOException e) {
+            if (e instanceof SocketTimeoutException) {
+                throw (SocketTimeoutException)e;
+            }
             System.out.println("Error when reading type: " + e);
             return null;
         }

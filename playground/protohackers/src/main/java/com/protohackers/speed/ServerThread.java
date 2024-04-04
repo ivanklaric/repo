@@ -2,6 +2,7 @@ package com.protohackers.speed;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,11 @@ public class ServerThread extends Thread {
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
     private boolean wantHeartbeat = false;
     final Object outputStreamSyncObj = new Object();
+    private boolean shouldDie = false;
 
+    public void die() {
+        shouldDie = true;
+    }
 
     private synchronized void addCamera(Message msg) {
         if (msg.getType() != Message.MessageType.I_AM_CAMERA) return;
@@ -75,6 +80,7 @@ public class ServerThread extends Thread {
         OutputStream outputStream;
 
         try {
+            clientSocket.setSoTimeout(3000);
             inputStream = clientSocket.getInputStream();
             outputStream = clientSocket.getOutputStream();
         } catch (IOException e) {
@@ -83,7 +89,15 @@ public class ServerThread extends Thread {
         }
 
         while (true) {
-            var msg = MessageIO.readMessage(inputStream);
+            if (shouldDie) {
+                break;
+            }
+            Message msg = null;
+            try {
+                msg = MessageIO.readMessage(inputStream);
+            } catch (SocketTimeoutException ste) {
+                continue;
+            }
             if (!MessageValidator.isClientMessageValid(msg, threadMode, wantHeartbeat)) {
                 System.out.println("Read unexpected message, sending error and closing");
                 try {

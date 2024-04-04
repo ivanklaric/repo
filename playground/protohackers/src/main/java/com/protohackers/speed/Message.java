@@ -10,7 +10,8 @@ public class Message {
         WANT_HEARTBEAT((char)0x40),
         HEARTBEAT((char)0x41),
         I_AM_CAMERA((char)0x80),
-        I_AM_DISPATCHER((char)0x81);
+        I_AM_DISPATCHER((char)0x81),
+        INVALID((char)0x00);
 
 
         public final char typeCode;

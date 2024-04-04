@@ -3,6 +3,7 @@ package com.protohackers.speed;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.net.SocketTimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +25,12 @@ class MessageIOTest {
         var outputStream = buildOutputStreamWithMessage(MessageIO.createErrorMessage("foo"));
         var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
-        var msg = MessageIO.readMessage(inputStream);
+        Message msg = null;
+        try {
+            msg = MessageIO.readMessage(inputStream);
+        } catch (SocketTimeoutException e) {
+            fail("Failed reading message " + e);
+        }
         assertNotNull(msg);
         assertEquals(Message.MessageType.ERROR, msg.getType());
         assertEquals("foo", msg.getErrorMessage());
@@ -35,7 +41,12 @@ class MessageIOTest {
         var outputStream = buildOutputStreamWithMessage(MessageIO.createPlateMessage("plate-foo", 123));
         var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
-        var msg = MessageIO.readMessage(inputStream);
+        Message msg = null;
+        try {
+            msg = MessageIO.readMessage(inputStream);
+        } catch (SocketTimeoutException e) {
+            fail("Failed reading message");
+        }
         assertNotNull(msg);
         assertEquals(Message.MessageType.PLATE, msg.getType());
         assertEquals("plate-foo", msg.getPlate());
@@ -48,7 +59,13 @@ class MessageIOTest {
                 MessageIO.createTicketMessage("UN1X", 66, 100, 123456, 110, 123816, 10000));
         var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
-        var msg = MessageIO.readMessage(inputStream);
+        Message msg = null;
+        try {
+            msg = MessageIO.readMessage(inputStream);
+        } catch (SocketTimeoutException e) {
+            fail("Failed reading message " + e);
+        }
+
         assertNotNull(msg);
         assertEquals(Message.MessageType.TICKET, msg.getType());
         assertEquals("UN1X", msg.getPlate());
@@ -64,7 +81,12 @@ class MessageIOTest {
     public void testWantHeartbeat() {
         var outputStream = buildOutputStreamWithMessage( MessageIO.createWantHeartBeatMessage(100) );
         var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        var msg = MessageIO.readMessage(inputStream);
+        Message msg = null;
+        try {
+            msg = MessageIO.readMessage(inputStream);
+        } catch (SocketTimeoutException e) {
+            fail("Failder reading message: " + e);
+        }
         assertNotNull(msg);
         assertEquals(Message.MessageType.WANT_HEARTBEAT, msg.getType());
         assertEquals(100, msg.getInterval());
@@ -74,7 +96,12 @@ class MessageIOTest {
     public void testHeartbeat() {
         var outputStream = buildOutputStreamWithMessage( MessageIO.createHeartBeatMessage() );
         var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        var msg = MessageIO.readMessage(inputStream);
+        Message msg = null;
+        try {
+            msg = MessageIO.readMessage(inputStream);
+        } catch (SocketTimeoutException e) {
+            fail("Failed reading message: " + e);
+        }
         assertNotNull(msg);
         assertEquals(Message.MessageType.HEARTBEAT, msg.getType());
     }
@@ -84,7 +111,12 @@ class MessageIOTest {
         var outputStream = buildOutputStreamWithMessage(
                 MessageIO.createIAmCameraMessage(100, 200, 250));
         var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        var msg = MessageIO.readMessage(inputStream);
+        Message msg = null;
+        try {
+            msg = MessageIO.readMessage(inputStream);
+        } catch (SocketTimeoutException e) {
+            fail("Failed reading message: " + e);
+        }
         assertNotNull(msg);
         assertEquals(Message.MessageType.I_AM_CAMERA, msg.getType());
         assertEquals(100, msg.getRoad());
@@ -97,7 +129,12 @@ class MessageIOTest {
         var outputStream = buildOutputStreamWithMessage(
                 MessageIO.createIAmDispatcherMessage(new long[] {101, 66, 200, 300, 10000, 25000, 30000}));
         var inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        var msg = MessageIO.readMessage(inputStream);
+        Message msg = null;
+        try {
+            msg = MessageIO.readMessage(inputStream);
+        } catch (SocketTimeoutException e) {
+            fail("Failed reading message: " + e);
+        }
         assertNotNull(msg);
         assertEquals(Message.MessageType.I_AM_DISPATCHER, msg.getType());
         assertNotNull(msg.getDispatcherRoads());
