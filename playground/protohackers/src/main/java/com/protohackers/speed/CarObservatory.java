@@ -33,7 +33,7 @@ public class CarObservatory {
                     if (distance < 0 || timeDiff < 0)
                         continue;
                     long speedBetweenCameras = Math.round( (double) distance / timeDiff) * 100;
-                    if (speedBetweenCameras > prevCamera.limit && !finedCars.contains(plate)) {
+                    if (speedBetweenCameras > currCamera.limit * 100 && !finedCars.contains(plate)) {
                         finedCars.add(plate);
                         ret.add(MessageIO.createTicketMessage(
                                 plate, road,
