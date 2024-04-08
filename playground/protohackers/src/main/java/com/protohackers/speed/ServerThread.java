@@ -33,6 +33,9 @@ public class ServerThread extends Thread {
     private synchronized void addCamera(Message msg) {
         if (msg.getType() != Message.MessageType.I_AM_CAMERA) return;
         cameraContext = msg;
+        synchronized (dispatcherSemaphores) {
+            dispatcherSemaphores.computeIfAbsent(msg.getRoad(), k -> new Semaphore(1));
+        }
     }
 
     private synchronized void addDispatcher(Message msg) {
@@ -46,15 +49,18 @@ public class ServerThread extends Thread {
     }
 
     private synchronized void dispatchTickets(List<Message> ticketsToIssue) {
-        for (var ticket : ticketsToIssue) {
-            try {
-                dispatcherSemaphores.get(ticket.getRoad()).acquire();
-                ticketsToDispatch.computeIfAbsent(ticket.getRoad(), k -> new ArrayList<>());
-                ticketsToDispatch.get(ticket.getRoad()).add(ticket);
-            } catch (InterruptedException e) {
-                break;
-            } finally {
-                dispatcherSemaphores.get(ticket.getRoad()).release();
+        synchronized (dispatcherSemaphores) {
+            for (var ticket : ticketsToIssue) {
+                System.out.println("Server is dispatching ticket for " + ticket.getPlate());
+                try {
+                    dispatcherSemaphores.get(ticket.getRoad()).acquire();
+                    ticketsToDispatch.computeIfAbsent(ticket.getRoad(), k -> new ArrayList<>());
+                    ticketsToDispatch.get(ticket.getRoad()).add(ticket);
+                } catch (InterruptedException e) {
+                    break;
+                } finally {
+                    dispatcherSemaphores.get(ticket.getRoad()).release();
+                }
             }
         }
     }

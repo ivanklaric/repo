@@ -67,19 +67,19 @@ public class ProtocolTests {
         Thread serverThread = runServerThread();
         Thread camera1Thread = runClientThread("camera1", syncObj,
                 List.of(
-                        MessageIO.createIAmCameraMessage(123, 8, 60),
-                        MessageIO.createPlateMessage("UN1X", 0)),
+                        MessageIO.createIAmCameraMessage(124, 8, 60),
+                        MessageIO.createPlateMessage("L1N00X", 0)),
                 null);
         Thread camera2Thread = runClientThread("camera2", syncObj,
                 List.of(
-                        MessageIO.createIAmCameraMessage(123, 9, 60),
-                        MessageIO.createPlateMessage("UN1X", 45)
+                        MessageIO.createIAmCameraMessage(124, 9, 60),
+                        MessageIO.createPlateMessage("L1N00X", 45)
                 ), null);
         Thread dispatcherThread = runClientThread("dispatcher", syncObj,
                 List.of(
-                        MessageIO.createIAmDispatcherMessage(new long[] {123})
+                        MessageIO.createIAmDispatcherMessage(new long[] {124})
                 ),
-                MessageIO.createTicketMessage("UN1X", 123, 8, 0, 9, 45, 8000));
+                MessageIO.createTicketMessage("L1N00X", 124, 8, 0, 9, 45, 8000));
         Thread timeoutThread = runTimeoutThread("dispatcher", syncObj);
         joinThreads(timeoutThread,
                 List.of(camera1Thread, camera2Thread, dispatcherThread),
@@ -184,7 +184,6 @@ public class ProtocolTests {
                 if (msgToExpect != null) {
                     assertNotNull(msg);
                     assertEquals(msgToExpect.getType(), msg.getType());
-                    System.out.println(Thread.currentThread().getName() + " -> Message " + msg.getType() + " received.");
                 }
             } else {
                 assertNull(msg, "Client " + threadName +" isn't expected to receive a message.");
@@ -192,6 +191,7 @@ public class ProtocolTests {
 
             synchronized (syncObj) {
                 if (msg != null) {
+                    System.out.println(Thread.currentThread().getName() + " -> Message " + msg.getType() + " received.");
                     messagesReceived.computeIfAbsent(Thread.currentThread().getName(), k -> new ArrayList<>());
                     messagesReceived.get(Thread.currentThread().getName()).add(msg);
                     responseReceived.put(Thread.currentThread().getName(), true);
