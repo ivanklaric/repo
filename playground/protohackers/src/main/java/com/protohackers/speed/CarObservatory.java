@@ -18,17 +18,29 @@ public class CarObservatory {
         }
     }
 
-    private boolean canIssueTicket(String plate, long timestamp) {
-        long day = (long) Math.floor( timestamp / 86400.0);
+    private static long getDay(long timestamp) {
+        return (long) Math.floor( timestamp / 86400.0);
+    }
 
-        if (!finedCars.containsKey(plate))
+    private boolean canIssueTicket(String plate, long startTimestamp, long endTimestamp) {
+        boolean ret = true;
+        long currTimestamp = startTimestamp;
+        long currDay = getDay(currTimestamp);
+
+        if (!finedCars.containsKey(plate)) {
             finedCars.put(plate, new HashMap<>());
-
-        if (!finedCars.get(plate).containsKey(day)) {
-            finedCars.get(plate).put(day, true);
-            return true;
         }
-        return false;
+
+        while (currDay <= getDay(endTimestamp)) {
+            if (finedCars.get(plate).containsKey(currDay)) {
+                ret = false;
+            } else {
+                finedCars.get(plate).put(currDay, true);
+            }
+            currTimestamp += 86400;
+            currDay = getDay(currTimestamp);
+        }
+        return ret;
     }
 
     public List<Message> issueTickets() {
@@ -48,7 +60,7 @@ public class CarObservatory {
                         continue;
                     long speedBetweenCameras = Math.round( (double) distance / timeDiff) * 100;
                     if (speedBetweenCameras > currCamera.limit * 100) {
-                        if (canIssueTicket(plate, currCamera.timestamp)) {
+                        if (canIssueTicket(plate, prevCamera.timestamp, currCamera.timestamp)) {
                             ret.add(MessageIO.createTicketMessage(
                                     plate, road,
                                     prevCamera.mile, prevCamera.timestamp, currCamera.mile, currCamera.timestamp,

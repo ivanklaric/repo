@@ -52,9 +52,11 @@ class CarObservatoryTest {
         observatory.addCarSighting("UN1X", 45, 123, 9, 60);
         observatory.addCarSighting("UN1X", 100000, 123, 8, 60);
         observatory.addCarSighting("UN1X", 100045, 123, 9, 60);
+
         var tickets = observatory.issueTickets();
         assertNotNull(tickets);
         assertEquals(2, tickets.size());
+
         var ticket1 = tickets.getFirst();
         assertEquals("UN1X", ticket1.getPlate());
         assertEquals(123, ticket1.getRoad());
@@ -72,9 +74,35 @@ class CarObservatoryTest {
         assertEquals(100000, ticket2.getTimestamp1());
         assertEquals(100045, ticket2.getTimestamp2());
         assertEquals(8000, ticket2.getSpeed());
-
     }
 
+    @Test
+    public void ticketsSpanningMultipleDays() {
+        // The second ticket shouldn't be issued because the first ticket spans multiple days.
+        var observatory = new CarObservatory();
+        observatory.addCarSighting("UN1X", 86380, 123, 8, 60);
+        observatory.addCarSighting("UN1X", 86425, 123, 9, 60);
+        observatory.addCarSighting("UN1X", 86500, 123, 8, 60);
+        observatory.addCarSighting("UN1X", 86545, 123, 9, 60);
+        var tickets = observatory.issueTickets();
+        assertNotNull(tickets);
+        assertEquals(1, tickets.size());
+
+        var ticket1 = tickets.getFirst();
+        assertEquals("UN1X", ticket1.getPlate());
+        assertEquals(123, ticket1.getRoad());
+        assertEquals(8, ticket1.getMile1());
+        assertEquals(9, ticket1.getMile2());
+        assertEquals(86380, ticket1.getTimestamp1());
+        assertEquals(86425, ticket1.getTimestamp2());
+        assertEquals(8000, ticket1.getSpeed());
+
+        observatory.addCarSighting("UN1X", 0, 123, 8, 60);
+        observatory.addCarSighting("UN1X", 45, 123, 9, 60);
+        var shouldBeEmpty = observatory.issueTickets();
+        assertNotNull(shouldBeEmpty);
+        assertTrue(shouldBeEmpty.isEmpty());
+    }
 
     @Test
     public void shuffleOrderScenario() {
