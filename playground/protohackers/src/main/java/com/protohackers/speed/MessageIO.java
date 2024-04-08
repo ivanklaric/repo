@@ -271,6 +271,10 @@ public class MessageIO {
                 break;
             } catch (SocketTimeoutException ignored) {
                 // timed out, wait a bit more
+                if (Thread.interrupted()) {
+                    System.out.println(Thread.currentThread().getName() + " -> readMessage interrupted");
+                    throw new IOException("interrupted");
+                }
             }
         }
 

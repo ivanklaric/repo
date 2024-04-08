@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ProtocolTests {
 
     Map<String, Boolean> responseReceived = new ConcurrentHashMap<>();
+    Map<String, List<Message>> messagesReceived = new ConcurrentHashMap<>();
     boolean timeoutFail = false;
 
     @Test
@@ -85,6 +86,40 @@ public class ProtocolTests {
                 serverThread);
     }
 
+    @Test
+    public void TestMultipleDispatchers() {
+        Object syncObj = new Object();
+
+        Thread serverThread = runServerThread();
+        Thread camera1Thread = runClientThread("camera1", syncObj,
+                List.of(
+                        MessageIO.createIAmCameraMessage(123, 8, 60),
+                        MessageIO.createPlateMessage("UN1X", 0)),
+                null);
+        Thread camera2Thread = runClientThread("camera2", syncObj,
+                List.of(
+                        MessageIO.createIAmCameraMessage(123, 9, 60),
+                        MessageIO.createPlateMessage("UN1X", 45)
+                ), null);
+        Thread dispatcherThread1 = runClientThread("dispatchers", syncObj,
+                List.of(
+                        MessageIO.createIAmDispatcherMessage(new long[] {123})
+                ),
+                null, true);
+        Thread dispatcherThread2 = runClientThread("dispatchers", syncObj,
+                List.of(
+                        MessageIO.createIAmDispatcherMessage(new long[] {123, 456})
+                ),
+                null, true);
+        Thread timeoutThread = runTimeoutThread("dispatchers", syncObj);
+        joinThreadsAndCheckResponse(timeoutThread,
+                List.of(camera1Thread, camera2Thread, dispatcherThread1, dispatcherThread2),
+                serverThread);
+        assertNotNull(messagesReceived.get("dispatchers"));
+        assertEquals(1, messagesReceived.get("dispatchers").size());
+        assertEquals(Message.MessageType.TICKET, messagesReceived.get("dispatchers").getFirst().getType());
+    }
+
     private void joinThreadsAndCheckResponse(Thread timeoutThread, List<Thread> threadsToJoin, Thread serverThread) {
         try {
             timeoutThread.join();
@@ -121,6 +156,10 @@ public class ProtocolTests {
     }
 
     private Thread runClientThread(String threadName, Object syncObj, List<Message> msgsToSend, Message msgToExpect) {
+        return runClientThread(threadName, syncObj, msgsToSend, msgToExpect, true);
+    }
+
+    private Thread runClientThread(String threadName, Object syncObj, List<Message> msgsToSend, Message msgToExpect, boolean expectMessage) {
         Thread clientThread = new Thread(() -> {
             SpeedClient client = new SpeedClient("localhost", 9003);
             if (!client.isReady()) {
@@ -136,19 +175,27 @@ public class ProtocolTests {
             } catch (IOException e) {
                 fail("Failed sending message: " +e);
             }
-            if (msgToExpect != null) {
-                Message msg = null;
-                try {
-                    msg = client.retrieveMessage();
-                } catch (IOException e) {
-                    fail("Failed retrieving " + msgToExpect.getType() + " message: " + e);
-                }
-                assertNotNull(msg);
-                assertEquals(msgToExpect.getType(), msg.getType());
-                System.out.println(Thread.currentThread().getName() + " -> Message " + msg.getType() + " received.");
+            Message msg = null;
+            try {
+                msg = client.retrieveMessage();
+            } catch (IOException ignored) {
             }
+            if (expectMessage) {
+                if (msgToExpect != null) {
+                    assertNotNull(msg);
+                    assertEquals(msgToExpect.getType(), msg.getType());
+                    System.out.println(Thread.currentThread().getName() + " -> Message " + msg.getType() + " received.");
+                }
+            } else {
+                assertNull(msg, "Client " + threadName +" isn't expected to receive a message.");
+            }
+
             synchronized (syncObj) {
-                responseReceived.put(Thread.currentThread().getName(), true);
+                if (msg != null) {
+                    messagesReceived.computeIfAbsent(Thread.currentThread().getName(), k -> new ArrayList<>());
+                    messagesReceived.get(Thread.currentThread().getName()).add(msg);
+                    responseReceived.put(Thread.currentThread().getName(), true);
+                }
             }
             client.close();
         }, threadName);
