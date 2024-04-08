@@ -105,7 +105,7 @@ public class SingleClientTests {
             } catch (IOException e) {
                 fail("Failed retrieving HEARTBEAT message: " + e);
             }
-            System.out.println("Heartbeat message received.");
+            System.out.println("Message " + msg.getType() + " received.");
             assertNotNull(msg);
             assertEquals(msgToExpect.getType(), msg.getType());
             synchronized (syncObj) {

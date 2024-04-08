@@ -5,7 +5,8 @@ public class MessageValidator {
         if (msg == null) return false;
         // TICKET or HEARTBEAT messages can only be sent by the server
         if (msg.getType() == Message.MessageType.TICKET || msg.getType() == Message.MessageType.HEARTBEAT) return false;
-        if (msg.getType() == Message.MessageType.I_AM_CAMERA && threadMode != ServerThread.ThreadMode.UNKNOWN)
+        if ((msg.getType() == Message.MessageType.I_AM_CAMERA || msg.getType() == Message.MessageType.I_AM_DISPATCHER)
+                && threadMode != ServerThread.ThreadMode.UNKNOWN)
             return false;
         if (wantHeartbeat && msg.getType() == Message.MessageType.WANT_HEARTBEAT) return false;
         if (msg.getType() == Message.MessageType.TICKET &&
