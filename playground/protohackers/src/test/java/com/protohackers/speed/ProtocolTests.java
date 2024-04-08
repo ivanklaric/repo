@@ -28,7 +28,7 @@ public class ProtocolTests {
                 MessageIO.createHeartBeatMessage());
         Thread timeoutThread = runTimeoutThread("heartbeatTest", syncObj);
 
-        joinThreadsAndCheckResponse(timeoutThread, List.of(clientThread), serverThread);
+        joinThreads(timeoutThread, List.of(clientThread), serverThread);
     }
 
     @Test
@@ -41,7 +41,7 @@ public class ProtocolTests {
                 MessageIO.createErrorMessage("Invalid message sent"));
         Thread timeoutThread = runTimeoutThread("invalidMsgTest", syncObj);
 
-        joinThreadsAndCheckResponse(timeoutThread, List.of(clientThread), serverThread);
+        joinThreads(timeoutThread, List.of(clientThread), serverThread);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class ProtocolTests {
                 MessageIO.createErrorMessage("Invalid message sent"));
         Thread timeoutThread = runTimeoutThread("client", syncObj);
 
-        joinThreadsAndCheckResponse(timeoutThread, List.of(clientThread), serverThread);
+        joinThreads(timeoutThread, List.of(clientThread), serverThread);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class ProtocolTests {
                 ),
                 MessageIO.createTicketMessage("UN1X", 123, 8, 0, 9, 45, 8000));
         Thread timeoutThread = runTimeoutThread("dispatcher", syncObj);
-        joinThreadsAndCheckResponse(timeoutThread,
+        joinThreads(timeoutThread,
                 List.of(camera1Thread, camera2Thread, dispatcherThread),
                 serverThread);
     }
@@ -112,7 +112,7 @@ public class ProtocolTests {
                 ),
                 null, true);
         Thread timeoutThread = runTimeoutThread("dispatchers", syncObj);
-        joinThreadsAndCheckResponse(timeoutThread,
+        joinThreads(timeoutThread,
                 List.of(camera1Thread, camera2Thread, dispatcherThread1, dispatcherThread2),
                 serverThread);
         assertNotNull(messagesReceived.get("dispatchers"));
@@ -120,7 +120,7 @@ public class ProtocolTests {
         assertEquals(Message.MessageType.TICKET, messagesReceived.get("dispatchers").getFirst().getType());
     }
 
-    private void joinThreadsAndCheckResponse(Thread timeoutThread, List<Thread> threadsToJoin, Thread serverThread) {
+    private void joinThreads(Thread timeoutThread, List<Thread> threadsToJoin, Thread serverThread) {
         try {
             timeoutThread.join();
             serverThread.interrupt();
