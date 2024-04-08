@@ -28,7 +28,7 @@ class MessageIOTest {
         Message msg = null;
         try {
             msg = MessageIO.readMessage(inputStream);
-        } catch (SocketTimeoutException e) {
+        } catch (IOException e) {
             fail("Failed reading message " + e);
         }
         assertNotNull(msg);
@@ -44,7 +44,7 @@ class MessageIOTest {
         Message msg = null;
         try {
             msg = MessageIO.readMessage(inputStream);
-        } catch (SocketTimeoutException e) {
+        } catch (IOException e) {
             fail("Failed reading message");
         }
         assertNotNull(msg);
@@ -62,7 +62,7 @@ class MessageIOTest {
         Message msg = null;
         try {
             msg = MessageIO.readMessage(inputStream);
-        } catch (SocketTimeoutException e) {
+        } catch (IOException e) {
             fail("Failed reading message " + e);
         }
 
@@ -84,7 +84,7 @@ class MessageIOTest {
         Message msg = null;
         try {
             msg = MessageIO.readMessage(inputStream);
-        } catch (SocketTimeoutException e) {
+        } catch (IOException e) {
             fail("Failder reading message: " + e);
         }
         assertNotNull(msg);
@@ -99,7 +99,7 @@ class MessageIOTest {
         Message msg = null;
         try {
             msg = MessageIO.readMessage(inputStream);
-        } catch (SocketTimeoutException e) {
+        } catch (IOException e) {
             fail("Failed reading message: " + e);
         }
         assertNotNull(msg);
@@ -114,7 +114,7 @@ class MessageIOTest {
         Message msg = null;
         try {
             msg = MessageIO.readMessage(inputStream);
-        } catch (SocketTimeoutException e) {
+        } catch (IOException e) {
             fail("Failed reading message: " + e);
         }
         assertNotNull(msg);
@@ -132,7 +132,7 @@ class MessageIOTest {
         Message msg = null;
         try {
             msg = MessageIO.readMessage(inputStream);
-        } catch (SocketTimeoutException e) {
+        } catch (IOException e) {
             fail("Failed reading message: " + e);
         }
         assertNotNull(msg);

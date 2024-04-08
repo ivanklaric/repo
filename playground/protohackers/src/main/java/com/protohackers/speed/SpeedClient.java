@@ -9,8 +9,8 @@ import java.net.UnknownHostException;
 
 public class SpeedClient {
     private Socket socket;
-    private InputStream inputStream;
-    private OutputStream outputStream;
+    private InputStream inputStream = null;
+    private OutputStream outputStream = null;
 
 
     public SpeedClient(String hostname, int port) {
@@ -38,12 +38,16 @@ public class SpeedClient {
         }
     }
 
+    public boolean isReady() {
+        return inputStream != null && outputStream != null;
+    }
+
     public void sendMessage(Message msg) throws IOException {
         MessageIO.writeMessage(outputStream, msg);
     }
 
     public Message retrieveMessage() throws IOException {
-        System.out.println("Reading a message");
+        System.out.println(Thread.currentThread().getName() + " -> Client is reading a message");
         return MessageIO.readMessage(inputStream);
     }
 

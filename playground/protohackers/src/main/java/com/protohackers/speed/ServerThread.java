@@ -6,6 +6,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
@@ -67,6 +68,7 @@ public class ServerThread extends Thread {
 
     public ServerThread(Socket socket) {
         this.clientSocket = socket;
+        this.setName("ServerThread " + Math.random());
     }
 
     private void writeToClient(OutputStream outputStream, Message msg) throws IOException {
@@ -97,6 +99,10 @@ public class ServerThread extends Thread {
                 msg = MessageIO.readMessage(inputStream);
             } catch (SocketTimeoutException ste) {
                 continue;
+            } catch (IOException e) {
+                System.out.println(Thread.currentThread().getName() + ", mode " + threadMode +
+                        " -> Error reading from the socket, giving up: " + e);
+                break;
             }
             if (!MessageValidator.isClientMessageValid(msg, threadMode, wantHeartbeat)) {
                 System.out.println("Read unexpected message, sending error and closing");
@@ -111,26 +117,26 @@ public class ServerThread extends Thread {
 
             switch(msg.getType()) {
                 case Message.MessageType.WANT_HEARTBEAT -> {
-                    System.out.println("Got WANT_HEARTBEAT msg");
+                    System.out.println("Server got WANT_HEARTBEAT msg");
                     if (msg.getInterval() > 0) {
                         wantHeartbeat = true;
                         runHeartbeatThread(msg, outputStream);
                     }
                 }
                 case Message.MessageType.I_AM_CAMERA -> {
-                    System.out.println("Got I_AM_CAMERA msg, camera context: road:" + msg.getRoad() +
+                    System.out.println("Server got I_AM_CAMERA msg, camera context: road:" + msg.getRoad() +
                             ", mile:" + msg.getMile() + ", limit:" + msg.getLimit());
                     threadMode = ThreadMode.CAMERA;
                     addCamera(msg);
                 }
                 case Message.MessageType.I_AM_DISPATCHER -> {
-                    System.out.println("Got I_AM_DISPATCHER msg");
+                    System.out.println("Server got I_AM_DISPATCHER msg");
                     threadMode = ThreadMode.DISPATCHER;
                     addDispatcher(msg);
                     runDispatcherThreads(outputStream);
                 }
                 case Message.MessageType.PLATE -> {
-                    System.out.println("Got PLATE msg:" + msg.getPlate() + ", timestamp: " + msg.getTimestamp()
+                    System.out.println("Server got PLATE msg:" + msg.getPlate() + ", timestamp: " + msg.getTimestamp()
                     +", camera context: road:" + cameraContext.getRoad() + " mile:" + cameraContext.getMile());
                     addCarObservation(msg);
                     dispatchTickets(carObservatory.issueTickets());

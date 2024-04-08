@@ -11,7 +11,7 @@ public class MessageIO {
     private static long getNextUnsignedInt(InputStream inputStream) throws IOException {
         int read = inputStream.read();
         if (read < 0) {
-            throw new IOException("Couldn't read from inputStream.");
+            throw new IOException("Couldn't read from inputStream, connection closed.");
         }
         return Byte.toUnsignedLong((byte) (read & 0xff));
     }
@@ -263,19 +263,16 @@ public class MessageIO {
     }
 
 
-    public static Message readMessage(InputStream inputStream) throws SocketTimeoutException {
+    public static Message readMessage(InputStream inputStream) throws IOException {
         long msgType;
-        try {
-            msgType = readU8(inputStream);
-        } catch (IOException e) {
-            if (e instanceof SocketTimeoutException) {
-                throw (SocketTimeoutException)e;
+        while (true) {
+            try {
+                msgType = readU8(inputStream);
+                break;
+            } catch (SocketTimeoutException ste) {
+                continue; // timed out, wait a bit more
             }
-            System.out.println("Error when reading type: " + e);
-            return null;
         }
-        if (msgType == -1)
-            return null;
 
         return switch ((int) msgType) {
             case 0x10 -> readErrorMessage(inputStream);
