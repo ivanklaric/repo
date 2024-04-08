@@ -6,7 +6,7 @@ public class CarObservatory {
 
     public record CarSighting(long mile, long timestamp, long limit) {}
     private final Map<String, Map<Long, List<CarSighting>>> sightings = new HashMap<>(); // plate => (road => ())
-    private final Set<String> finedCars = new HashSet<>();
+    private final Map<String, Map<Long, Boolean>> finedCars = new HashMap<>();
 
 
     public void addCarSighting(String plate, long timestamp, long road, long mile, long limit) {
@@ -16,6 +16,19 @@ public class CarObservatory {
             sightings.get(plate).get(road).add(new CarSighting(mile, timestamp, limit));
             sightings.get(plate).get(road).sort(Comparator.comparingLong((CarSighting s) -> s.timestamp));
         }
+    }
+
+    private boolean canIssueTicket(String plate, long timestamp) {
+        long day = (long) Math.floor( timestamp / 86400.0);
+
+        if (!finedCars.containsKey(plate))
+            finedCars.put(plate, new HashMap<>());
+
+        if (!finedCars.get(plate).containsKey(day)) {
+            finedCars.get(plate).put(day, true);
+            return true;
+        }
+        return false;
     }
 
     public List<Message> issueTickets() {
@@ -34,16 +47,14 @@ public class CarObservatory {
                     if (distance < 0 || timeDiff < 0)
                         continue;
                     long speedBetweenCameras = Math.round( (double) distance / timeDiff) * 100;
-                    if (speedBetweenCameras > currCamera.limit * 100 && finedCars.contains(plate)) {
-                        System.out.println("Ticket already issued today, skipping.");
-                    }
-                    if (speedBetweenCameras > currCamera.limit * 100 && !finedCars.contains(plate)) {
-                        finedCars.add(plate);
-                        ret.add(MessageIO.createTicketMessage(
-                                plate, road,
-                                prevCamera.mile, prevCamera.timestamp, currCamera.mile, currCamera.timestamp,
-                                speedBetweenCameras
-                        ));
+                    if (speedBetweenCameras > currCamera.limit * 100) {
+                        if (canIssueTicket(plate, currCamera.timestamp)) {
+                            ret.add(MessageIO.createTicketMessage(
+                                    plate, road,
+                                    prevCamera.mile, prevCamera.timestamp, currCamera.mile, currCamera.timestamp,
+                                    speedBetweenCameras
+                            ));
+                        }
                     }
                 }
             }
