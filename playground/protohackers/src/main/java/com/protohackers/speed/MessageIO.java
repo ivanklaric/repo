@@ -269,8 +269,8 @@ public class MessageIO {
             try {
                 msgType = readU8(inputStream);
                 break;
-            } catch (SocketTimeoutException ste) {
-                continue; // timed out, wait a bit more
+            } catch (SocketTimeoutException ignored) {
+                // timed out, wait a bit more
             }
         }
 

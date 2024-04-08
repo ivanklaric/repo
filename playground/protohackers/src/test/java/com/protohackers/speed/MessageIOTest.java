@@ -3,7 +3,6 @@ package com.protohackers.speed;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.net.SocketTimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
