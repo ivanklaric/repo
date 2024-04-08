@@ -41,6 +41,8 @@ class CarObservatoryTest {
         assertEquals(0, ticket.getTimestamp1());
         assertEquals(45, ticket.getTimestamp2());
         assertEquals(8000, ticket.getSpeed());
+        var tickets2 = observatory.issueTickets();
+        assertEquals(0, tickets2.size());
     }
 
     @Test

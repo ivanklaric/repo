@@ -6,6 +6,8 @@ public class CarObservatory {
 
     public record CarSighting(long mile, long timestamp, long limit) {}
     private final Map<String, Map<Long, List<CarSighting>>> sightings = new HashMap<>(); // plate => (road => ())
+    private final Set<String> finedCars = new HashSet<>();
+
 
     public void addCarSighting(String plate, long timestamp, long road, long mile, long limit) {
         synchronized (sightings) {
@@ -17,7 +19,6 @@ public class CarObservatory {
     }
 
     public List<Message> issueTickets() {
-        Set<String> finedCars = new HashSet<>();
         var ret = new ArrayList<Message>();
         for (String plate : sightings.keySet()) {
             for (Long road : sightings.get(plate).keySet()) {
