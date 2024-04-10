@@ -1,12 +1,13 @@
 package com.protohackers.speed;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CarObservatory {
 
     public record CarSighting(long mile, long timestamp, long limit) {}
-    private final Map<String, Map<Long, List<CarSighting>>> sightings = new HashMap<>(); // plate => (road => ())
-    private final Map<String, Map<Long, Boolean>> finedCars = new HashMap<>();
+    private final Map<String, Map<Long, List<CarSighting>>> sightings = new ConcurrentHashMap<>(); // plate => (road => ())
+    private final Map<String, Map<Long, Boolean>> finedCars = new ConcurrentHashMap<>();
 
 
     public void addCarSighting(String plate, long timestamp, long road, long mile, long limit) {

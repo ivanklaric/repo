@@ -87,6 +87,45 @@ public class ProtocolTests {
     }
 
     @Test
+    public void Test100Cars() {
+        // First, prep the data
+        List<Message> expectedTickets = new ArrayList<>();
+        List<Message> camera1Messages = new ArrayList<>();
+        camera1Messages.add(MessageIO.createIAmCameraMessage(900, 8, 60));
+        List<Message> camera2Messages = new ArrayList<>();
+        camera2Messages.add(MessageIO.createIAmCameraMessage(900, 9, 60));
+        int road = 900;
+        for (int i = 0; i < 100; i++) {
+            long startTimestamp = (long) (Math.random()*100000.0);
+            long endTimestamp = (long) (Math.random()*100) + startTimestamp+1;
+            String carPlate = "car-" + i;
+            camera1Messages.add(MessageIO.createPlateMessage(carPlate, startTimestamp));
+            camera2Messages.add(MessageIO.createPlateMessage(carPlate, endTimestamp));
+            var expectedSpeed = 3600 / (endTimestamp-startTimestamp);
+            if (expectedSpeed > 60) {
+                expectedTickets.add(MessageIO.createTicketMessage(carPlate, road, 8, startTimestamp, 9, endTimestamp, expectedSpeed*100));
+            }
+        }
+
+        // then, create the threads
+        Object syncObj = new Object();
+
+        Thread serverThread = runServerThread();
+        Thread camera1Thread = runClientThread("camera1", syncObj, camera1Messages, null);
+        Thread camera2Thread = runClientThread("camera2", syncObj, camera2Messages, null);
+        Thread dispatcherThread = runDispatcherThread("dispatchers", syncObj,
+                List.of(
+                        MessageIO.createIAmDispatcherMessage(new long[] {900})
+                ));
+        Thread timeoutThread = runTimeoutThread("dispatchers", syncObj);
+        joinThreads(timeoutThread,
+                List.of(camera1Thread, camera2Thread, dispatcherThread),
+                serverThread);
+        assertNotNull(messagesReceived.get("dispatchers"));
+        assertEquals(expectedTickets.size(), messagesReceived.get("dispatchers").size());
+    }
+
+    @Test
     public void TestMultipleDispatchers() {
         Object syncObj = new Object();
 
@@ -157,6 +196,44 @@ public class ProtocolTests {
 
     private Thread runClientThread(String threadName, Object syncObj, List<Message> msgsToSend, Message msgToExpect) {
         return runClientThread(threadName, syncObj, msgsToSend, msgToExpect, true);
+    }
+
+    private Thread runDispatcherThread(String threadName, Object syncObj, List<Message> msgsToSend) {
+        Thread clientThread = new Thread(() -> {
+            SpeedClient client = new SpeedClient("localhost", 9003);
+            if (!client.isReady()) {
+                fail("Client couldn't connect");
+                return;
+            }
+            try {
+                for (Message msgToSend : msgsToSend) {
+                    client.sendMessage(msgToSend);
+                    System.out.println(Thread.currentThread().getName() +
+                            " -> Client sent the " + msgToSend.getType() + " message");
+                }
+            } catch (IOException e) {
+                fail("Failed sending message: " +e);
+            }
+            while (!Thread.interrupted()) {
+                Message msg = null;
+                try {
+                    msg = client.retrieveMessage();
+                } catch (IOException ignored) {
+                }
+                synchronized (syncObj) {
+                    if (msg != null) {
+                        System.out.println(Thread.currentThread().getName() + " -> Message " + msg.getType() + " received.");
+                        messagesReceived.computeIfAbsent(Thread.currentThread().getName(), k -> new ArrayList<>());
+                        messagesReceived.get(Thread.currentThread().getName()).add(msg);
+                        responseReceived.put(Thread.currentThread().getName(), true);
+                    }
+                }
+            }
+            client.close();
+        }, threadName);
+        responseReceived.put(threadName, false);
+        clientThread.start();
+        return clientThread;
     }
 
     private Thread runClientThread(String threadName, Object syncObj, List<Message> msgsToSend, Message msgToExpect, boolean expectMessage) {

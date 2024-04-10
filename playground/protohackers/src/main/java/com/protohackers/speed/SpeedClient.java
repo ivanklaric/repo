@@ -47,7 +47,6 @@ public class SpeedClient {
     }
 
     public Message retrieveMessage() throws IOException {
-        System.out.println(Thread.currentThread().getName() + " -> Client is reading a message");
         return MessageIO.readMessage(inputStream);
     }
 
