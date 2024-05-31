@@ -95,15 +95,19 @@ public class ProtocolTests {
         List<Message> camera2Messages = new ArrayList<>();
         camera2Messages.add(MessageIO.createIAmCameraMessage(900, 9, 60));
         int road = 900;
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 200; i++) {
             long startTimestamp = (long) (Math.random()*100000.0);
             long endTimestamp = (long) (Math.random()*100) + startTimestamp+1;
             String carPlate = "car-" + i;
             camera1Messages.add(MessageIO.createPlateMessage(carPlate, startTimestamp));
             camera2Messages.add(MessageIO.createPlateMessage(carPlate, endTimestamp));
-            var expectedSpeed = 3600 / (endTimestamp-startTimestamp);
-            if (expectedSpeed > 60) {
+            double timeDiff = (double) (endTimestamp - startTimestamp) / 3600;
+            long expectedSpeed = Math.round( (double) 1 / timeDiff) * 100;
+            if (expectedSpeed > 6000) {
                 expectedTickets.add(MessageIO.createTicketMessage(carPlate, road, 8, startTimestamp, 9, endTimestamp, expectedSpeed*100));
+                System.out.println("IsSpeeding: plate " + carPlate +", expected speed " + expectedSpeed);
+            } else {
+                System.out.println("NotSpeeding: plate " + carPlate +", expected speed " + expectedSpeed);
             }
         }
 
@@ -122,6 +126,7 @@ public class ProtocolTests {
                 List.of(camera1Thread, camera2Thread, dispatcherThread),
                 serverThread);
         assertNotNull(messagesReceived.get("dispatchers"));
+//        assertArrayEquals(expectedTickets.toArray(), messagesReceived.get("dispatchers").toArray());
         assertEquals(expectedTickets.size(), messagesReceived.get("dispatchers").size());
     }
 
@@ -222,7 +227,7 @@ public class ProtocolTests {
                 }
                 synchronized (syncObj) {
                     if (msg != null) {
-                        System.out.println(Thread.currentThread().getName() + " -> Message " + msg.getType() + " received.");
+                        System.out.println(Thread.currentThread().getName() + " -> Message " + msg.getType() + " received for " + msg.getPlate());
                         messagesReceived.computeIfAbsent(Thread.currentThread().getName(), k -> new ArrayList<>());
                         messagesReceived.get(Thread.currentThread().getName()).add(msg);
                         responseReceived.put(Thread.currentThread().getName(), true);

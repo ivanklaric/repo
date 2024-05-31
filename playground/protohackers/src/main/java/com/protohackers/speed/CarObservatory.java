@@ -29,7 +29,7 @@ public class CarObservatory {
         long currDay = getDay(currTimestamp);
 
         if (!finedCars.containsKey(plate)) {
-            finedCars.put(plate, new HashMap<>());
+            finedCars.put(plate, new ConcurrentHashMap<>());
         }
 
         while (currDay <= getDay(endTimestamp)) {
@@ -62,11 +62,10 @@ public class CarObservatory {
                     long speedBetweenCameras = Math.round( (double) distance / timeDiff) * 100;
                     if (speedBetweenCameras > currCamera.limit * 100) {
                         if (canIssueTicket(plate, prevCamera.timestamp, currCamera.timestamp)) {
-                            ret.add(MessageIO.createTicketMessage(
-                                    plate, road,
-                                    prevCamera.mile, prevCamera.timestamp, currCamera.mile, currCamera.timestamp,
-                                    speedBetweenCameras
-                            ));
+                            System.out.println("Observatory is issuing a ticket for " + plate);
+                            ret.add(MessageIO.createTicketMessage(plate, road,
+                                prevCamera.mile, prevCamera.timestamp, currCamera.mile, currCamera.timestamp,
+                                speedBetweenCameras));
                         }
                     }
                 }

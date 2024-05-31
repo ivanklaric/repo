@@ -24,6 +24,7 @@ public class ServerThread extends Thread {
     private ThreadMode threadMode = ThreadMode.UNKNOWN;
     private boolean wantHeartbeat = false;
     final Object outputStreamSyncObj = new Object();
+    final Object ticketIssuanceSyncObj = new Object();
     private boolean shouldDie = false;
 
     public void die() {
@@ -51,15 +52,17 @@ public class ServerThread extends Thread {
     private synchronized void dispatchTickets(List<Message> ticketsToIssue) {
         synchronized (dispatcherSemaphores) {
             for (var ticket : ticketsToIssue) {
+                long road = ticket.getRoad();
+                var roadSemaphore = dispatcherSemaphores.get(road);
                 System.out.println("Server is dispatching ticket for " + ticket.getPlate());
                 try {
-                    dispatcherSemaphores.get(ticket.getRoad()).acquire();
-                    ticketsToDispatch.computeIfAbsent(ticket.getRoad(), k -> new ArrayList<>());
-                    ticketsToDispatch.get(ticket.getRoad()).add(ticket);
+                    roadSemaphore.acquire();
+                    ticketsToDispatch.computeIfAbsent(road, k -> new ArrayList<>());
+                    ticketsToDispatch.get(road).add(ticket);
                 } catch (InterruptedException e) {
                     break;
                 } finally {
-                    dispatcherSemaphores.get(ticket.getRoad()).release();
+                    roadSemaphore.release();
                 }
             }
         }
@@ -94,6 +97,8 @@ public class ServerThread extends Thread {
             System.out.println("Can't open client s: " + e);
             return;
         }
+
+        runTicketingThread();
 
         while (true) {
             if (shouldDie) {
@@ -143,8 +148,9 @@ public class ServerThread extends Thread {
                 case Message.MessageType.PLATE -> {
                     System.out.println("Server got PLATE msg:" + msg.getPlate() + ", timestamp: " + msg.getTimestamp()
                     +", camera context: road:" + cameraContext.getRoad() + " mile:" + cameraContext.getMile());
-                    addCarObservation(msg);
-                    dispatchTickets(carObservatory.issueTickets());
+                    synchronized (ticketIssuanceSyncObj) {
+                        addCarObservation(msg);
+                    }
                 }
             }
         }
@@ -158,27 +164,34 @@ public class ServerThread extends Thread {
 
     private void runDispatcherThreads(OutputStream outputStream) {
         for (var road : dispatcherContext.getDispatcherRoads()) {
+            synchronized (dispatcherSemaphores) {
+            var roadSemaphore = dispatcherSemaphores.get(road);
             Thread.ofVirtual().start( () -> {
                 while (true) {
                     try {
-                        dispatcherSemaphores.get(road).acquire();
-                        if (ticketsToDispatch.containsKey(road)) {
-                            for (Message ticket : ticketsToDispatch.get(road)) {
-                                try {
-                                    writeToClient(outputStream, ticket);
-                                } catch (IOException e) {
-                                    return; // TODO see about this
+                        synchronized (ticketIssuanceSyncObj) {
+                            roadSemaphore.acquire();
+                            if (ticketsToDispatch.containsKey(road)) {
+                                for (Message ticket : ticketsToDispatch.get(road)) {
+                                    try {
+                                        writeToClient(outputStream, ticket);
+                                        System.out.println("Sent the dispatcher a ticket for " + ticket.getPlate());
+                                    } catch (IOException e) {
+                                        System.out.println("Unable to write the ticket for " + ticket.getPlate());
+                                        return; // TODO see about this
+                                    }
                                 }
+                                ticketsToDispatch.get(road).clear();
                             }
-                            ticketsToDispatch.get(road).clear();
                         }
-                    } catch (InterruptedException e) {
+                    } catch(InterruptedException e){
                         return;
-                    } finally {
-                        dispatcherSemaphores.get(road).release();
+                    } finally{
+                        roadSemaphore.release();
                     }
                 }
             });
+            }
         }
     }
 
@@ -199,4 +212,22 @@ public class ServerThread extends Thread {
             }
         });
     }
+
+    private void runTicketingThread() {
+        int ticketCheckInterval = 200; // check for tickets to issue every 200msec
+
+        Thread.ofVirtual().start( () -> {
+            while (true) {
+                try {
+                    Thread.sleep(ticketCheckInterval);
+                } catch (InterruptedException e) {
+                    break;
+                }
+                synchronized (ticketIssuanceSyncObj) {
+                    dispatchTickets(carObservatory.issueTickets());
+                }
+            }
+        });
+    }
+
 }
